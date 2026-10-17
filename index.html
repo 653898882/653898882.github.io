@@ -203,14 +203,13 @@ function parseHash(){
 async function route(){
   const {seg,q} = parseHash();
   window.scrollTo(0,0);
-  await loadBoards();
   try{
-    if(seg[0]==='b'){ renderNav(seg[1]); return topicList(seg[1], q); }
-    if(seg[0]==='t'){ renderNav(''); return thread(seg[1], q); }
-    if(seg[0]==='u'){ renderNav(''); return profile(seg[1]); }
-    if(seg[0]==='me'){ renderNav(''); return meCenter(q.get('tab')||'info'); }
-    if(seg[0]==='search'){ renderNav(''); return searchPage(q.get('q')||''); }
-    renderNav('home'); return home();
+    if(seg[0]==='b'){ await loadBoards(); renderNav(seg[1]); return topicList(seg[1], q); }
+    if(seg[0]==='t'){ await loadBoards(); renderNav(''); return thread(seg[1], q); }
+    if(seg[0]==='u'){ await loadBoards(); renderNav(''); return profile(seg[1]); }
+    if(seg[0]==='me'){ await loadBoards(); renderNav(''); return meCenter(q.get('tab')||'info'); }
+    if(seg[0]==='search'){ await loadBoards(); renderNav(''); return searchPage(q.get('q')||''); }
+    return home();
   }catch(e){ app.innerHTML = `<div class="panel"><div class="panel-bd err">加载失败：${esc(e.message)}</div></div>`; }
 }
 window.addEventListener('hashchange', route);
@@ -482,7 +481,13 @@ async function meCenter(tab){
   if(tab==='info'){
     body = `
       <div class="field"><label>用户名</label><input value="${esc(me.username)}" disabled></div>
-      <div class="field"><label>头像图片 URL（可留空）</label><input id="pfAvatar" value="${esc(me.avatar||'')}" placeholder="https://…"></div>
+      <div class="field"><label>头像</label>
+        <div style="display:flex;align-items:center;gap:14px">
+          <img id="pfAvPrev" src="${me.avatar?esc(me.avatar):''}" style="width:70px;height:70px;border:1px solid #cfd8e3;border-radius:4px;object-fit:cover;background:#dde5ee">
+          <label style="cursor:pointer" class="btn gray">选择图片<input id="pfFile" type="file" accept="image/*" style="display:none"></label>
+        </div>
+        <div class="muted">支持 jpg/png，最大 2MB，选完自动上传</div>
+      </div>
       <div class="field"><label>性别</label><select id="pfGender">
         <option value="">保密</option><option value="男"${me.gender==='男'?' selected':''}>男</option><option value="女"${me.gender==='女'?' selected':''}>女</option></select></div>
       <div class="field"><label>个性签名</label><textarea id="pfSign" maxlength="200" style="min-height:70px">${esc(me.signature||'')}</textarea></div>
@@ -511,9 +516,21 @@ async function meCenter(tab){
     </div>`;
   if(tab==='info') $('pfSave').onclick = async ()=>{
     const e=$('pfErr'),o=$('pfOk'); e.textContent='';o.textContent='';
-    try{ const r=await req('',{method:'POST',body:{action:'profile_update',avatar:$('pfAvatar').value.trim(),gender:$('pfGender').value,signature:$('pfSign').value}});
+    try{ const r=await req('',{method:'POST',body:{action:'profile_update',gender:$('pfGender').value,signature:$('pfSign').value}});
       me = Object.assign({}, me, r.user); store.user = me; renderTop(); o.textContent='已保存'; toast('资料已保存');
     }catch(err){ e.textContent=err.message; }
+  };
+  if(tab==='info') $('pfFile').onchange = async (e)=>{
+    const f=e.target.files[0]; if(!f) return;
+    const o=$('pfOk'), er=$('pfErr'); er.textContent=''; o.textContent='上传中…';
+    try{
+      const fd=new FormData(); fd.append('file', f);
+      const r=await fetch(API,{method:'POST',headers:{'Authorization':'Bearer '+store.token},body:fd});
+      const j=await r.json().catch(()=>({}));
+      if(!r.ok) throw new Error(j.error||'上传失败');
+      me.avatar=j.url; store.user=me; $('pfAvPrev').src=j.url; renderTop();
+      o.textContent='头像已更新'; toast('头像已更新');
+    }catch(err){ o.textContent=''; er.textContent=err.message; }
   };
   if(tab==='pwd') $('pwSave').onclick = async ()=>{
     const e=$('pwErr'); e.textContent='';
