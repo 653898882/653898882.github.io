@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>私信与群聊</title>
+<script src="./lib/supabase.js"></script>
+<style>
+:root{color-scheme:light}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",Arial,sans-serif;background:#eef1f5;color:#333;font-size:14px}
+.top{background:#2b6cb0;color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.top b{font-size:16px}.top a{color:#dbe9f7;margin-left:auto;font-size:13px}
+.wrap{max-width:1000px;margin:10px auto;padding:0 10px 20px;display:flex;gap:10px;height:calc(100vh - 74px)}
+.side{width:270px;flex:none;display:flex;flex-direction:column;background:#fff;border:1px solid #cfd8e3;border-radius:6px;overflow:hidden}
+.side-hd{padding:8px 10px;background:#f5f8fb;border-bottom:1px solid #e1e8f0;display:flex;gap:6px;align-items:center}
+.side-hd b{font-size:14px}
+.side-hd .btn{margin-left:auto}
+.btn{border:0;background:#2b6cb0;color:#fff;border-radius:4px;padding:6px 10px;font-size:12px;cursor:pointer}
+.btn.gray{background:#e6ebf1;color:#333}
+.btn.small{padding:3px 8px;font-size:11px}
+.convs{flex:1;overflow-y:auto}
+.conv{padding:9px 10px;border-bottom:1px solid #f0f3f7;cursor:pointer;display:flex;gap:8px;align-items:center}
+.conv:hover{background:#f7fafd}
+.conv.on{background:#e8f0fb}
+.conv .ic{width:34px;height:34px;border-radius:6px;background:#dbe6f3;color:#2b6cb0;display:flex;align-items:center;justify-content:center;font-size:15px;flex:none}
+.conv .mid{flex:1;min-width:0}
+.conv .tt{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conv .ls{font-size:11.5px;color:#8a95a1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge{background:#e74c3c;color:#fff;border-radius:9px;font-size:11px;padding:0 6px;min-width:18px;text-align:center;line-height:18px}
+.badge.at{background:#e68a00}
+.main{flex:1;display:flex;flex-direction:column;background:#fff;border:1px solid #cfd8e3;border-radius:6px;overflow:hidden;min-width:0}
+.main-hd{padding:9px 12px;background:#f5f8fb;border-bottom:1px solid #e1e8f0;display:flex;align-items:center;gap:8px}
+.main-hd b{font-size:14px}
+.main-hd .meta{font-size:12px;color:#8a95a1}
+.main-hd .acts{margin-left:auto;display:flex;gap:6px}
+.ann{background:#fff8e6;border-bottom:1px solid #f0e0b8;padding:6px 12px;font-size:12.5px;color:#7a5b1e;display:none}
+.ann.show{display:block}
+.msgs{flex:1;overflow-y:auto;padding:12px;background:#fbfcfe}
+.msg{display:flex;gap:8px;margin-bottom:10px}
+.msg .av{width:30px;height:30px;border-radius:5px;background:#cfd8e3;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex:none}
+.msg .body{max-width:75%}
+.msg .nm{font-size:11.5px;color:#8a95a1;margin-bottom:2px}
+.msg .bub{background:#fff;border:1px solid #e1e8f0;border-radius:6px;padding:7px 10px;white-space:pre-wrap;word-break:break-word;line-height:1.6}
+.msg.me{flex-direction:row-reverse}
+.msg.me .body{text-align:right}
+.msg.me .bub{background:#e8f0fb;border-color:#cfe0f7;text-align:left;display:inline-block}
+.msg .tm{font-size:10.5px;color:#b3bcc6;margin-top:3px}
+.inbar{border-top:1px solid #e1e8f0;padding:9px;display:flex;gap:8px;align-items:flex-end;background:#fff}
+.inbar textarea{flex:1;border:1px solid #cfd8e3;border-radius:5px;padding:8px 10px;font-family:inherit;font-size:14px;resize:none;min-height:42px;max-height:110px;outline:none}
+.inbar textarea:focus{border-color:#2b6cb0}
+.empty{color:#9aa5b1;text-align:center;padding:40px 10px;font-size:13px}
+.modal{position:fixed;inset:0;background:#0006;display:flex;align-items:center;justify-content:center;padding:16px;z-index:60}
+.modal .box{background:#fff;width:100%;max-width:400px;border-radius:6px;padding:16px}
+.modal h3{font-size:15px;margin-bottom:10px}
+.fld{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.fld input{border:1px solid #cfd8e3;border-radius:4px;padding:8px 10px;font-size:14px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:#eef3f9;border-radius:14px;padding:3px 9px;font-size:12px;margin:2px}
+.chip b{cursor:pointer;color:#c0392b}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#333;color:#fff;padding:7px 16px;border-radius:4px;font-size:13px;opacity:0;transition:.2s;pointer-events:none;z-index:80}
+.toast.show{opacity:.95}
+.hidden{display:none!important}
+@media(max-width:720px){
+  .wrap{flex-direction:column;height:auto}
+  .side{width:100%;max-height:36vh}
+  .main{height:60vh}
+}
+</style>
+</head>
+<body>
+<div class="top"><b>💬 私信与群聊</b><a href="./">← 返回论坛</a></div>
+<div class="wrap">
+  <div class="side">
+    <div class="side-hd">
+      <b>会话</b>
+      <button class="btn small" id="newDmBtn">私信</button>
+      <button class="btn small gray" id="newGroupBtn">群聊</button>
+    </div>
+    <div class="convs" id="convs"><div class="empty">加载中…</div></div>
+  </div>
+  <div class="main">
+    <div class="main-hd">
+      <b id="convTitle">未选择会话</b>
+      <span class="meta" id="convMeta"></span>
+      <span class="acts">
+        <button class="btn small gray hidden" id="annBtn">公告</button>
+        <button class="btn small gray hidden" id="memberBtn">成员</button>
+      </span>
+    </div>
+    <div class="ann" id="annBar"></div>
+    <div class="msgs" id="msgs"><div class="empty">选择左侧会话开始聊天</div></div>
+    <div class="inbar">
+      <textarea id="input" placeholder="输入消息…（@用户名 可提醒，最多 1000 字）" maxlength="1000" disabled></textarea>
+      <button class="btn" id="sendBtn" disabled>发送</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal hidden" id="mDm"><div class="box">
+  <h3>发起私信</h3>
+  <div class="fld"><input id="dmSearch" placeholder="搜索用户名…"></div>
+  <div id="dmResult"></div>
+  <div style="text-align:right;margin-top:10px"><button class="btn gray" id="dmCancel">关闭</button></div>
+</div></div>
+
+<div class="modal hidden" id="mGroup"><div class="box">
+  <h3>创建群聊</h3>
+  <div class="fld"><input id="gTitle" placeholder="群名称（必填）" maxlength="30"></div>
+  <div class="fld"><input id="gSearch" placeholder="搜索并添加成员…"></div>
+  <div id="gChips"></div>
+  <div id="gResult"></div>
+  <div style="text-align:right;margin-top:10px"><button class="btn gray" id="gCancel">取消</button> <button class="btn" id="gCreate">创建</button></div>
+</div></div>
+
+<div class="modal hidden" id="mAnn"><div class="box">
+  <h3>群公告</h3>
+  <div class="fld"><textarea id="annText" style="border:1px solid #cfd8e3;border-radius:4px;padding:8px;min-height:90px;font-family:inherit"></textarea></div>
+  <div style="text-align:right"><button class="btn gray" id="annCancel">取消</button> <button class="btn" id="annSave">保存</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = "https://jgwadmeqhzgzlkbbjcik.supabase.co/functions/v1/forum";
+const SB_URL = "https://jgwadmeqhzgzlkbbjcik.supabase.co";
+const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impnd2FkbWVxaHpnemxrYmJqY2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyMTQ1NzIsImV4cCI6MjEwNzc5MDU3Mn0.IE9tXL2umU3Icg7b7vxxcKuRj_x4As1GbQodA1e8hmo";
+
+const $ = id => document.getElementById(id);
+const sb = supabase.createClient(SB_URL, SB_ANON);
+const token = () => localStorage.getItem('forum_token') || '';
+const me = (()=>{ try { return JSON.parse(localStorage.getItem('forum_user')||'null'); } catch(e){ return null; } })();
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtT = t => new Date(t).toLocaleTimeString('zh-CN',{hour12:false,hour:'2-digit',minute:'2-digit'});
+const fmtD = t => new Date(t).toLocaleString('zh-CN',{hour12:false});
+
+let curConv = null, curConvInfo = null, channel = null;
+let groupMembers = [];
+let allConvs = [];
+
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1600); }
+
+async function api(path, opts={}){
+  const h = {};
+  if(opts.body) h['Content-Type']='application/json';
+  if(token()) h['Authorization']='Bearer '+token();
+  const r = await fetch(API+path,{method:opts.method||'GET',headers:h,body:opts.body?JSON.stringify(opts.body):undefined});
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok){ const e=new Error(j.error||('HTTP '+r.status)); e.status=r.status; throw e; }
+  return j;
+}
+
+if(!token()){
+  document.querySelector('.wrap').innerHTML = '<div class="empty" style="margin:auto">请先到论坛登录后再使用私信功能。<br><br><a href="./">返回论坛登录</a></div>';
+}
+
+// ---------------- 会话列表 ----------------
+async function loadConvs(){
+  try{
+    const j = await api('?action=conversations');
+    allConvs = j.conversations || [];
+    renderConvs();
+  }catch(e){
+    $('convs').innerHTML = '<div class="empty">'+esc(e.message)+'</div>';
+  }
+}
+function renderConvs(){
+  const box = $('convs');
+  if(!allConvs.length){ box.innerHTML='<div class="empty">还没有会话<br>点上方按钮开始</div>'; return; }
+  box.innerHTML = allConvs.map(c=>`
+    <div class="conv ${curConv===c.id?'on':''}" data-id="${c.id}">
+      <div class="ic">${c.type==='group'?'👥':'💬'}</div>
+      <div class="mid">
+        <div class="tt">${esc(c.title)}</div>
+        <div class="ls">${c.last?esc(c.last.sender+': '+c.last.body.slice(0,20)):'暂无消息'}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end">
+        ${c.mention?`<span class="badge at">@${c.mention}</span>`:''}
+        ${c.unread?`<span class="badge">${c.unread}</span>`:''}
+      </div>
+    </div>`).join('');
+  box.querySelectorAll('.conv').forEach(el=>el.onclick=()=>openConv(el.dataset.id));
+}
+
+// ---------------- 打开会话 ----------------
+async function openConv(id){
+  try{
+    const j = await api('?action=messages&conv_id='+encodeURIComponent(id));
+    curConv = id; curConvInfo = j.conv; groupMembers = j.members || [];
+    const c = allConvs.find(x=>x.id===id);
+    $('convTitle').textContent = c ? c.title : (j.conv.title||'会话');
+    $('convMeta').textContent = j.conv.type==='group' ? `${(j.members||[]).length} 人` : '';
+    const annText = j.conv.announcement || '';
+    $('annBar').textContent = annText ? ('📢 群公告：'+annText) : '';
+    $('annBar').classList.toggle('show', !!annText);
+    const isOwner = j.conv.my_role === 'owner';
+    $('annBtn').classList.toggle('hidden', j.conv.type!=='group' || !isOwner);
+    $('memberBtn').classList.toggle('hidden', j.conv.type!=='group');
+    $('input').disabled = false; $('sendBtn').disabled = false;
+
+    $('msgs').innerHTML = '';
+    (j.messages||[]).forEach(m=>appendMsg(m, false));
+    scrollBottom();
+    await api('', {method:'POST', body:{action:'mark_read', conv_id:id}});
+    const c2 = allConvs.find(x=>x.id===id); if(c2){ c2.unread=0; c2.mention=0; renderConvs(); }
+    subscribe(id, j.conv.secret);
+  }catch(e){ toast(e.message); }
+}
+
+function appendMsg(m, isRealtime){
+  const box = $('msgs');
+  const mine = me && m.sender_id === me.id;
+  const div = document.createElement('div');
+  div.className = 'msg' + (mine?' me':'');
+  div.innerHTML = `
+    <div class="av">${esc((m.sender||'?').slice(0,1))}</div>
+    <div class="body">
+      ${mine?'':`<div class="nm">${esc(m.sender||'')}</div>`}
+      <div class="bub">${esc(m.body)}</div>
+      <div class="tm">${fmtT(m.created_at)}</div>
+    </div>`;
+  box.appendChild(div);
+  if(isRealtime) scrollBottom();
+}
+function scrollBottom(){ const b=$('msgs'); b.scrollTop = b.scrollHeight; }
+
+// ---------------- Realtime 真推送 ----------------
+function subscribe(convId, secret){
+  if(channel){ sb.removeChannel(channel); channel = null; }
+  channel = sb.channel('conv:'+convId+':'+secret, { config: { broadcast: { self: false } } });
+  channel.on('broadcast', { event: 'msg' }, ({ payload }) => {
+    if(!payload) return;
+    if(payload.type === 'announcement'){
+      curConvInfo.announcement = payload.text || '';
+      $('annBar').textContent = payload.text ? ('📢 群公告：'+payload.text) : '';
+      $('annBar').classList.toggle('show', !!payload.text);
+      return;
+    }
+    if(curConv !== convId) return;
+    appendMsg(payload, true);
+    api('', {method:'POST', body:{action:'mark_read', conv_id:convId}}).catch(()=>{});
+  });
+  channel.subscribe((status)=>{ if(status==='SUBSCRIBED') console.log('realtime connected'); });
+}
+
+// ---------------- 发送 ----------------
+async function send(){
+  const v = $('input').value.trim();
+  if(!v || !curConv) return;
+  $('sendBtn').disabled = true;
+  try{
+    const j = await api('', {method:'POST', body:{action:'send_message', conv_id:curConv, body:v}});
+    $('input').value = '';
+    appendMsg(j.message, true);
+    loadConvs();
+  }catch(e){ toast(e.message); }
+  finally{ $('sendBtn').disabled = false; }
+}
+$('sendBtn').onclick = send;
+$('input').addEventListener('keydown', e=>{
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); }
+});
+
+// ---------------- 新建私信 ----------------
+$('newDmBtn').onclick = ()=>{ $('mDm').classList.remove('hidden'); $('dmSearch').value=''; $('dmResult').innerHTML=''; };
+$('dmCancel').onclick = ()=>$('mDm').classList.add('hidden');
+let dmTimer;
+$('dmSearch').oninput = e=>{
+  clearTimeout(dmTimer);
+  dmTimer = setTimeout(async()=>{
+    const q = e.target.value.trim(); if(!q){ $('dmResult').innerHTML=''; return; }
+    try{
+      const j = await api('?action=user_search&q='+encodeURIComponent(q));
+      $('dmResult').innerHTML = (j.users||[]).map(u=>`<div class="chip" style="cursor:pointer" data-uid="${u.id}">${esc(u.username)}</div>`).join('') || '<div class="empty">没有找到用户</div>';
+      $('dmResult').querySelectorAll('[data-uid]').forEach(el=>el.onclick=async()=>{
+        try{ const r = await api('',{method:'POST',body:{action:'open_dm',user_id:el.dataset.uid}});
+          $('mDm').classList.add('hidden'); await loadConvs(); openConv(r.conv_id);
+        }catch(err){ toast(err.message); }
+      });
+    }catch(err){ toast(err.message); }
+  }, 300);
+};
+
+// ---------------- 新建群聊 ----------------
+let gSel = [];
+$('newGroupBtn').onclick = ()=>{ $('mGroup').classList.remove('hidden'); $('gTitle').value=''; $('gSearch').value=''; gSel=[]; renderChips(); $('gResult').innerHTML=''; };
+$('gCancel').onclick = ()=>$('mGroup').classList.add('hidden');
+function renderChips(){
+  $('gChips').innerHTML = gSel.map(u=>`<span class="chip">${esc(u.username)}<b data-rm="${u.id}">×</b></span>`).join('');
+  $('gChips').querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ gSel = gSel.filter(x=>x.id!==b.dataset.rm); renderChips(); });
+}
+let gTimer;
+$('gSearch').oninput = e=>{
+  clearTimeout(gTimer);
+  gTimer = setTimeout(async()=>{
+    const q = e.target.value.trim(); if(!q){ $('gResult').innerHTML=''; return; }
+    try{
+      const j = await api('?action=user_search&q='+encodeURIComponent(q));
+      $('gResult').innerHTML = (j.users||[]).map(u=>`<div class="chip" style="cursor:pointer" data-add="${u.id}" data-name="${esc(u.username)}">+ ${esc(u.username)}</div>`).join('');
+      $('gResult').querySelectorAll('[data-add]').forEach(el=>el.onclick=()=>{
+        if(!gSel.find(x=>x.id===el.dataset.add)) gSel.push({id:el.dataset.add, username:el.dataset.name});
+        renderChips();
+      });
+    }catch(err){ toast(err.message); }
+  }, 300);
+};
+$('gCreate').onclick = async ()=>{
+  const title = $('gTitle').value.trim();
+  if(!title) return toast('请填写群名称');
+  try{
+    const j = await api('',{method:'POST',body:{action:'create_group', title, member_ids:gSel.map(x=>x.id)}});
+    $('mGroup').classList.add('hidden');
+    await loadConvs(); openConv(j.conv_id);
+  }catch(e){ toast(e.message); }
+};
+
+// ---------------- 公告 / 成员 ----------------
+$('annBtn').onclick = ()=>{ $('annText').value = curConvInfo.announcement || ''; $('mAnn').classList.remove('hidden'); };
+$('annCancel').onclick = ()=>$('mAnn').classList.add('hidden');
+$('annSave').onclick = async ()=>{
+  try{ await api('',{method:'POST',body:{action:'set_announcement', conv_id:curConv, text:$('annText').value}});
+    $('mAnn').classList.add('hidden'); openConv(curConv);
+  }catch(e){ toast(e.message); }
+};
+$('memberBtn').onclick = ()=>{
+  const txt = groupMembers.map(m=>m.username).join('、');
+  alert('群成员（'+groupMembers.length+' 人）：\n'+txt);
+};
+
+// 启动
+if(token()){
+  loadConvs();
+  setInterval(loadConvs, 30000);
+}
+</script>
+</body>
+</html>
