@@ -19,19 +19,22 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",Arial,sans-serif;
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .row+.row{margin-top:10px}
 label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:#666}
-select,input[type=range]{font-size:13px}
-select{border:1px solid #cfd8e3;border-radius:3px;padding:5px 8px;background:#fff;color:#333}
-input[type=range]{width:130px;vertical-align:middle}
+select{border:1px solid #cfd8e3;border-radius:3px;padding:5px 8px;background:#fff;color:#333;font-size:13px}
+input[type=range]{width:120px;vertical-align:middle}
 .btn{display:inline-block;border:0;background:#2b6cb0;color:#fff;border-radius:3px;padding:7px 14px;cursor:pointer;font-size:13px}
 .btn.gray{background:#e6ebf1;color:#333}
-.drop{border:1px dashed #a9b8c9;border-radius:5px;padding:18px;text-align:center;color:#7a8a99;cursor:pointer;transition:.15s}
+.btn.green{background:#1a7f37}
+.btn:disabled{opacity:.5}
+.drop{border:1px dashed #a9b8c9;border-radius:5px;padding:16px;text-align:center;color:#7a8a99;cursor:pointer}
 .drop:hover,.drop.on{border-color:#2b6cb0;background:#f4f8fd;color:#2b6cb0}
-.stage{background:#fff;border:1px solid #cfd8e3;border-radius:5px;padding:8px;overflow:auto;max-height:72vh}
-pre{font-family:"Courier New",Consolas,monospace;line-height:1;margin:0;color:#33404d;white-space:pre;font-size:8px;letter-spacing:0}
+.stage{background:#fff;border:1px solid #cfd8e3;border-radius:5px;padding:6px;display:flex;justify-content:center;overflow:hidden}
+canvas{display:block;max-width:100%;height:auto}
 .stats{font-size:12px;color:#8a95a1;margin-top:6px}
 .hint{font-size:12px;color:#8a95a1}
 .hidden{display:none}
 video{display:none}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#333;color:#fff;padding:7px 16px;border-radius:4px;font-size:13px;opacity:0;transition:.2s;pointer-events:none;z-index:9}
+.toast.show{opacity:.95}
 </style>
 </head>
 <body>
@@ -39,11 +42,14 @@ video{display:none}
 <div class="wrap">
 
   <div class="panel">
-    <div class="panel-hd">1. 选择素材</div>
+    <div class="panel-hd">1. 素材</div>
     <div class="panel-bd">
-      <div class="drop" id="drop">点击选择或拖拽文件到这里（支持 GIF / 图片 / 视频）</div>
+      <div class="drop" id="drop">点击选择或拖拽文件（GIF / 图片 / 视频）</div>
       <input type="file" id="file" accept="image/*,video/*,.gif" class="hidden">
-      <div class="stats" id="fileInfo">未选择文件</div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn gray" id="camBtn">📷 使用摄像头</button>
+        <span class="stats" id="fileInfo">未选择素材</span>
+      </div>
     </div>
   </div>
 
@@ -61,39 +67,50 @@ video{display:none}
         <label class="f">清晰度（步长 <span id="stepV">6</span>）
           <input type="range" id="step" min="2" max="16" step="1" value="6">
         </label>
-        <label class="f">播放间隔 <span id="speedV">60</span> ms
+        <label class="f">间隔 <span id="speedV">60</span> ms
           <input type="range" id="speed" min="20" max="300" step="10" value="60">
+        </label>
+        <label class="f">彩色
+          <select id="color"><option value="0">黑白</option><option value="1" selected>彩色</option></select>
         </label>
         <label class="f">反色
           <select id="invert"><option value="0">否</option><option value="1">是</option></select>
         </label>
-        <label class="f">&nbsp;<button class="btn gray" id="stopBtn">停止</button></label>
       </div>
-      <div class="hint" style="margin-top:8px">提示：步长越小越清晰但越吃性能；视频会自动循环播放。</div>
+      <div class="row">
+        <button class="btn gray" id="stopBtn">停止</button>
+        <button class="btn gray" id="txtBtn">导出 TXT</button>
+        <button class="btn green" id="gifBtn">录制 GIF（约 2 秒）</button>
+      </div>
+      <div class="hint" style="margin-top:8px">画面已自动适应屏幕宽度，无需左右滑动。</div>
     </div>
   </div>
 
   <div class="panel">
     <div class="panel-hd">3. 输出</div>
     <div class="panel-bd">
-      <div class="stage"><pre id="out">等待素材…</pre></div>
+      <div class="stage"><canvas id="cv" width="320" height="200"></canvas></div>
       <div class="stats" id="stats"></div>
     </div>
   </div>
 
 </div>
 <video id="vid" muted loop playsinline></video>
+<div class="toast" id="toast"></div>
 
 <script type="module">
 import { parseGIF, decompressFrames } from 'https://cdn.jsdelivr.net/npm/gifuct-js@2.1.2/+esm';
 
 const $ = id => document.getElementById(id);
-const out = $('out'), stats = $('stats');
-let timer = null;
-let gifFrames = null, gifW = 0, gifH = 0, gifIndex = 0;
-let video = $('vid'), vCanvas = document.createElement('canvas'), vCtx = vCanvas.getContext('2d', {willReadFrequently:true});
-let imgData = null; // 静态图
+const cv = $('cv');
+const stage = document.querySelector('.stage');
+let timer = null, rafId = null;
 let mode = 'none';
+let gifFrames = null, gifW = 0, gifH = 0, gifIndex = 0;
+let imgData = null;
+let camStream = null;
+let lastGrid = null;
+const video = $('vid'), vCanvas = document.createElement('canvas'), vCtx = vCanvas.getContext('2d', {willReadFrequently:true});
 
 const PRESETS = {
   faithful: { type:'levels', levels: [["0","1"],[".","-"],[" "]] },
@@ -101,135 +118,212 @@ const PRESETS = {
   block:    { type:'ramp', ramp: " ░▒▓█" },
 };
 
-function pickChar(avg, preset){
-  if(preset.type==='levels'){
-    const L = preset.levels;
-    const idx = Math.min(L.length-1, Math.floor(avg/255*L.length));
-    const arr = L[idx];
-    return arr[Math.floor(Math.random()*arr.length)];
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1600); }
+function pickChar(lum, p){
+  if(p.type==='levels'){
+    const L=p.levels, idx=Math.min(L.length-1, Math.floor(lum/255*L.length));
+    const arr=L[idx]; return arr[Math.floor(Math.random()*arr.length)];
   }
-  const r = preset.ramp;
-  const idx = Math.min(r.length-1, Math.floor(avg/255*(r.length-1)));
+  const r=p.ramp, idx=Math.min(r.length-1, Math.floor(lum/255*(r.length-1)));
   return r[idx];
 }
 
-function pixelsToText(data, w, h, step, preset, inv){
-  let s = '';
-  for(let y=0; y<h; y+=step){
-    for(let x=0; x<w; x+=step){
-      const i = (y*w+x)*4;
-      let lum = data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114;
-      if(inv) lum = 255 - lum;
-      s += pickChar(lum, preset);
+// 像素 -> 字符网格 + 颜色
+function sampleGrid(data,w,h){
+  const step=+$('step').value, preset=PRESETS[$('preset').value], inv=$('invert').value==='1';
+  const cols=Math.ceil(w/step), rows=Math.ceil(h/step);
+  const chars=[], colors=[];
+  for(let ry=0; ry<rows; ry++){
+    const cr=[], cc=[];
+    const y=Math.min(h-1, ry*step);
+    for(let rx=0; rx<cols; rx++){
+      const x=Math.min(w-1, rx*step);
+      const i=(y*w+x)*4;
+      let r=data[i], g=data[i+1], b=data[i+2];
+      let lum=r*0.299+g*0.587+b*0.114;
+      if(inv) lum=255-lum;
+      cr.push(pickChar(lum,preset));
+      cc.push([r,g,b]);
     }
-    s += '\n';
+    chars.push(cr); colors.push(cc);
   }
-  return s;
+  return {cols, rows, chars, colors};
 }
 
-function render(data, w, h){
-  const step = +$('step').value;
-  const preset = PRESETS[$('preset').value];
-  const inv = $('invert').value === '1';
-  out.textContent = pixelsToText(data, w, h, step, preset, inv);
-  stats.textContent = `尺寸 ${w}×${h} · 步长 ${step} · 字符画约 ${Math.ceil(w/step)}×${Math.ceil(h/step)} 字符`;
+// 画到画布：自动适应宽度/高度，无需滚动
+function draw(grid){
+  lastGrid = grid;
+  const colorOn = $('color').value==='1';
+  const availW = Math.max(120, stage.clientWidth - 12);
+  const maxH = Math.max(160, Math.round(window.innerHeight*0.62));
+  let cellW = availW / grid.cols;
+  let cellH = cellW / 0.6;
+  if(grid.rows*cellH > maxH){ const s = maxH/(grid.rows*cellH); cellW*=s; cellH*=s; }
+  const W = Math.max(20, Math.round(grid.cols*cellW));
+  const H = Math.max(20, Math.round(grid.rows*cellH));
+  cv.width = W; cv.height = H;
+  cv.style.width = W+'px'; cv.style.height = H+'px';
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,W,H);
+  ctx.textBaseline = 'top';
+  const fs = cellH*0.96;
+  ctx.font = `${fs}px "Courier New",Consolas,monospace`;
+  for(let y=0; y<grid.rows; y++){
+    for(let x=0; x<grid.cols; x++){
+      const ch = grid.chars[y][x];
+      if(ch===' ') continue;
+      ctx.fillStyle = colorOn ? `rgb(${grid.colors[y][x][0]},${grid.colors[y][x][1]},${grid.colors[y][x][2]})` : '#33404d';
+      ctx.fillText(ch, x*cellW, y*cellH);
+    }
+  }
+  $('stats').textContent = `字符网格 ${grid.cols}×${grid.rows} · 画布 ${W}×${H}`;
+  if(rec.on) captureForRecord();
 }
 
-function clearTimer(){ if(timer){ clearInterval(timer); timer=null; } }
+function renderSource(data,w,h){ draw(sampleGrid(data,w,h)); }
 
-// ---- 图片 ----
+// ---------- 图片 ----------
 function setupImage(img){
   const c=document.createElement('canvas'); c.width=img.naturalWidth||img.width; c.height=img.naturalHeight||img.height;
   const cx=c.getContext('2d',{willReadFrequently:true}); cx.drawImage(img,0,0);
-  imgData = { data: cx.getImageData(0,0,c.width,c.height).data, w:c.width, h:c.height };
-  mode='image'; clearTimer(); render(imgData.data, imgData.w, imgData.h);
+  imgData={data:cx.getImageData(0,0,c.width,c.height).data,w:c.width,h:c.height};
+  mode='image'; clearAll(); renderSource(imgData.data,imgData.w,imgData.h);
 }
 
-// ---- GIF ----
+// ---------- GIF ----------
 async function setupGif(file){
-  const buff = await file.arrayBuffer();
-  const gif = parseGIF(buff);
-  gifW = gif.lsd.width; gifH = gif.lsd.height;
-  gifFrames = [];
-  decompressFrames(gif, true).forEach(frame => {
-    const c=document.createElement('canvas'); c.width=frame.dims.width; c.height=frame.dims.height;
-    const cx=c.getContext('2d',{willReadFrequently:true});
-    cx.putImageData(new ImageData(frame.patch, frame.dims.width, frame.dims.height),0,0);
-    gifFrames.push({ patch: frame.patch, dw: frame.dims.width, dh: frame.dims.height, delay: frame.delay||60 });
-  });
-  // 逐帧合成到整幅画布再采样
-  gifIndex = 0; mode='gif';
+  const buff=await file.arrayBuffer();
+  const gif=parseGIF(buff);
+  gifW=gif.lsd.width; gifH=gif.lsd.height;
+  gifFrames=[];
+  decompressFrames(gif,true).forEach(f=>gifFrames.push({patch:f.patch,dw:f.dims.width,dh:f.dims.height}));
+  mode='gif'; gifIndex=0; clearAll();
   drawGifFrame(0);
-  const speed = +$('speed').value;
-  clearTimer();
-  timer = setInterval(()=>{
-    if(!gifFrames || !gifFrames.length) return;
-    gifIndex = (gifIndex + 1) % gifFrames.length;
-    drawGifFrame(gifIndex);
-  }, Math.max(20, +$('speed').value));
+  timer=setInterval(()=>{ if(!gifFrames.length)return; gifIndex=(gifIndex+1)%gifFrames.length; drawGifFrame(gifIndex); }, Math.max(20,+$('speed').value));
 }
 function drawGifFrame(i){
-  const f = gifFrames[i];
+  const f=gifFrames[i];
   const full=document.createElement('canvas'); full.width=gifW; full.height=gifH;
   const fx=full.getContext('2d',{willReadFrequently:true});
-  fx.putImageData(new ImageData(f.patch, f.dw, f.dh), 0, 0);
-  const d = fx.getImageData(0,0,gifW,gifH).data;
-  render(d, gifW, gifH);
+  fx.putImageData(new ImageData(f.patch,f.dw,f.dh),0,0);
+  renderSource(fx.getImageData(0,0,gifW,gifH).data, gifW, gifH);
 }
 
-// ---- 视频 ----
-function setupVideo(file){
-  video.src = URL.createObjectURL(file);
-  video.play().catch(()=>{});
+// ---------- 视频 / 摄像头 ----------
+function startVideoLoop(){
   mode='video';
-  const loop = ()=>{
+  const loop=()=>{
     if(mode!=='video') return;
     if(video.videoWidth){
       if(vCanvas.width!==video.videoWidth){ vCanvas.width=video.videoWidth; vCanvas.height=video.videoHeight; }
       vCtx.drawImage(video,0,0,vCanvas.width,vCanvas.height);
-      const d = vCtx.getImageData(0,0,vCanvas.width,vCanvas.height).data;
-      render(d, vCanvas.width, vCanvas.height);
+      renderSource(vCtx.getImageData(0,0,vCanvas.width,vCanvas.height).data, vCanvas.width, vCanvas.height);
     }
-    setTimeout(loop, Math.max(20, +$('speed').value));
+    rafId=setTimeout(loop, Math.max(20,+$('speed').value));
   };
   loop();
 }
+function setupVideo(file){
+  stopStream(); video.srcObject=null; video.src=URL.createObjectURL(file); video.play().catch(()=>{});
+  clearAll(); startVideoLoop();
+}
+async function useCamera(){
+  try{
+    clearAll();
+    camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+    video.srcObject=camStream; video.src=null; await video.play();
+    $('fileInfo').textContent='摄像头实时'; startVideoLoop(); toast('摄像头已开启');
+  }catch(e){ toast('无法打开摄像头：'+e.message); }
+}
+function stopStream(){ if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; } }
 
-// ---- 文件入口 ----
-$('drop').onclick = ()=>$('file').click();
-$('drop').ondragover = e=>{ e.preventDefault(); $('drop').classList.add('on'); };
-$('drop').ondragleave = ()=>$('drop').classList.remove('on');
-$('drop').ondrop = e=>{ e.preventDefault(); $('drop').classList.remove('on'); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); };
-$('file').onchange = e=>{ if(e.target.files[0]) handleFile(e.target.files[0]); };
+function clearAll(){ if(timer){clearInterval(timer);timer=null;} if(rafId){clearTimeout(rafId);rafId=null;} }
 
+// ---------- 文件 ----------
+$('drop').onclick=()=>$('file').click();
+$('drop').ondragover=e=>{e.preventDefault();$('drop').classList.add('on');};
+$('drop').ondragleave=()=>$('drop').classList.remove('on');
+$('drop').ondrop=e=>{e.preventDefault();$('drop').classList.remove('on');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);};
+$('file').onchange=e=>{ if(e.target.files[0]) handleFile(e.target.files[0]); };
 async function handleFile(file){
-  clearTimer(); mode='none';
-  $('fileInfo').textContent = `已选择：${file.name}（${(file.size/1024).toFixed(0)} KB）`;
-  const t = file.type || '';
-  if(/gif$/i.test(file.name) || t==='image/gif'){ await setupGif(file); return; }
+  clearAll(); stopStream(); video.srcObject=null; mode='none';
+  $('fileInfo').textContent=`已选择：${file.name}（${(file.size/1024).toFixed(0)} KB）`;
+  const t=file.type||'';
+  if(/gif$/i.test(file.name)||t==='image/gif'){ await setupGif(file); return; }
   if(t.startsWith('video/')){ setupVideo(file); return; }
-  if(t.startsWith('image/')){
-    const img = new Image();
-    img.onload = ()=>setupImage(img);
-    img.src = URL.createObjectURL(file);
-    return;
-  }
-  $('fileInfo').textContent = '不支持的文件类型';
+  if(t.startsWith('image/')){ const img=new Image(); img.onload=()=>setupImage(img); img.src=URL.createObjectURL(file); return; }
+  $('fileInfo').textContent='不支持的文件类型';
 }
 
-// 参数变化即时生效
-function rerender(){
-  if(mode==='image' && imgData) render(imgData.data, imgData.w, imgData.h);
-  else if(mode==='gif' && gifFrames) drawGifFrame(gifIndex);
-  // video 由循环自动用新参数
-}
-$('step').oninput = e=>{ $('stepV').textContent = e.target.value; rerender(); };
-$('speed').oninput = e=>{ $('speedV').textContent = e.target.value;
-  if(mode==='gif' && gifFrames){ clearTimer(); timer=setInterval(()=>{ gifIndex=(gifIndex+1)%gifFrames.length; drawGifFrame(gifIndex); }, Math.max(20,+e.target.value)); }
+// ---------- 导出 TXT ----------
+$('txtBtn').onclick=()=>{
+  if(!lastGrid){ toast('还没有画面'); return; }
+  const text=lastGrid.chars.map(r=>r.join('')).join('\n');
+  download(new Blob([text],{type:'text/plain;charset=utf-8'}), 'ascii.txt');
+  toast('已导出 TXT');
 };
-$('preset').onchange = rerender;
-$('invert').onchange = rerender;
-$('stopBtn').onclick = ()=>{ clearTimer(); mode='none'; if(video){ video.pause(); } out.textContent='已停止'; };
+
+// ---------- 录制 GIF ----------
+const rec={on:false, frames:[], target:0, w:0, h:0};
+function captureForRecord(){
+  // 统一缩放到最大宽 420，节省内存
+  const maxW=420;
+  const scale=Math.min(1, maxW/cv.width);
+  const w=Math.max(1,Math.round(cv.width*scale)), h=Math.max(1,Math.round(cv.height*scale));
+  const off=document.createElement('canvas'); off.width=w; off.height=h;
+  const ox=off.getContext('2d'); ox.fillStyle='#fff'; ox.fillRect(0,0,w,h);
+  ox.drawImage(cv,0,0,w,h);
+  rec.frames.push({data: ox.getContext('2d').getImageData(0,0,w,h).data, w, h});
+  if(rec.frames.length>=rec.target){ rec.on=false; encodeGif(); }
+}
+async function encodeGif(){
+  try{
+    $('gifBtn').disabled=true; toast('正在生成 GIF…');
+    const { GIFEncoder, quantize, applyPalette } = await import('https://cdn.jsdelivr.net/npm/gifenc@1.0.3/+esm');
+    const gif=GIFEncoder();
+    const delay=Math.max(20,+$('speed').value);
+    const {w,h}=rec.frames[0];
+    for(const f of rec.frames){
+      const palette=quantize(f.data,256);
+      const idx=applyPalette(f.data,palette);
+      gif.writeFrame(idx,w,h,{palette,delay});
+    }
+    gif.finish();
+    download(new Blob([gif.bytes()],{type:'image/gif'}), 'ascii.gif');
+    toast('GIF 已生成');
+  }catch(e){ toast('生成失败：'+e.message); }
+  finally{ rec.frames=[]; $('gifBtn').disabled=false; }
+}
+$('gifBtn').onclick=()=>{
+  if(!lastGrid){ toast('还没有画面'); return; }
+  rec.frames=[]; rec.target=Math.max(4, Math.round(2000/Math.max(20,+$('speed').value)));
+  rec.on=true; toast('录制中…（约 2 秒）');
+  if(mode==='image'){ // 静态图也录指定帧数
+    for(let i=0;i<rec.target;i++) setTimeout(captureForRecord, i*Math.max(20,+$('speed').value));
+    if(rec.frames.length>=rec.target){ rec.on=false; encodeGif(); }
+  }
+};
+
+function download(blob, name){
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1000);
+}
+
+// ---------- 参数联动 ----------
+function rerender(){
+  if(mode==='image'&&imgData) renderSource(imgData.data,imgData.w,imgData.h);
+  else if(mode==='gif'&&gifFrames) drawGifFrame(gifIndex);
+}
+$('step').oninput=e=>{ $('stepV').textContent=e.target.value; rerender(); };
+$('speed').oninput=e=>{ $('speedV').textContent=e.target.value;
+  if(mode==='gif'&&gifFrames){ clearAll(); timer=setInterval(()=>{ gifIndex=(gifIndex+1)%gifFrames.length; drawGifFrame(gifIndex); }, Math.max(20,+e.target.value)); }
+};
+$('preset').onchange=rerender;
+$('color').onchange=rerender;
+$('invert').onchange=rerender;
+$('camBtn').onclick=useCamera;
+$('stopBtn').onclick=()=>{ clearAll(); mode='none'; if(video.pause) video.pause(); stopStream(); toast('已停止'); };
+window.addEventListener('resize', ()=>{ if(lastGrid) draw(lastGrid); });
 </script>
 </body>
 </html>
