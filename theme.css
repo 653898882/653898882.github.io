@@ -91,3 +91,27 @@ a{color:#2f6fe0}
 .modal .box,.modal .card{border-radius:20px!important;box-shadow:0 20px 60px rgba(20,40,80,.22)!important}
 .drawer{border-radius:20px 0 0 20px}
 .toast{border-radius:22px!important}
+
+/* ===== 深色模式 ===== */
+@media (prefers-color-scheme: dark){
+  html{color-scheme:dark}
+  body{background:#0e141b!important;color:#e7eef8}
+  body::before{background:#1f4a7a;opacity:.35}
+  body::after{background:#17564c;opacity:.35}
+  .panel,.card,.modal .box{background:#151c26!important;box-shadow:0 4px 20px rgba(0,0,0,.35)!important}
+  .panel-hd,.card-hd{background:#151c26!important;color:#e7eef8!important;border-color:#26313f!important}
+  .post{background:#151c26!important}
+  .post .pu{background:#182231!important;border-color:#26313f!important}
+  table th{background:#1b242f!important;color:#8d9aac!important;border-color:#26313f!important}
+  td{border-color:#1e2732!important}
+  tr:hover td{background:#182231!important}
+  input,textarea,select{background:#1b242f!important;border-color:#26313f!important;color:#e7eef8!important}
+  .btn.gray{background:#1b242f!important;color:#a9b6c6!important}
+  .nav a{color:#9aa8ba!important}
+  .nav a.on{background:#1d2a3b!important;color:#8ab8ff!important}
+  .crumb{color:#8d9aac}
+  .tag{background:#1d2a3b!important;color:#8ab8ff!important}
+  a{color:#8ab8ff}
+  .drawer{background:#151c26!important}
+  .toast{background:#26313f}
+}
