@@ -6,7 +6,7 @@
 <title>论坛</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0d1117;--card:#161b22;--bd:#30363d;--tx:#e6edf3;--mut:#8b949e;--acc:#388bfd;--ok:#3fb950;--bad:#f85149;--qq:#12b7f5}
+:root{--bg:#0d1117;--card:#161b22;--bd:#30363d;--tx:#e6edf3;--mut:#8b949e;--acc:#388bfd;--bad:#f85149}
 body{font-family:-apple-system,"PingFang SC","Segoe UI",sans-serif;background:var(--bg);color:var(--tx);line-height:1.6}
 .wrap{max-width:860px;margin:0 auto;padding:18px 14px 90px}
 header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;flex-wrap:wrap}
@@ -23,7 +23,6 @@ button{background:var(--acc);border:0;border-radius:8px;padding:9px 15px;color:#
 button:hover{filter:brightness(1.1)}
 button:disabled{opacity:.5;cursor:not-allowed}
 button.ghost{background:transparent;border:1px solid var(--bd);color:var(--tx)}
-button.qq{background:var(--qq);width:100%}
 button.danger{background:transparent;border:1px solid var(--bad);color:var(--bad);padding:5px 10px;font-size:12px}
 button.like{background:transparent;border:1px solid var(--bd);color:var(--tx);padding:6px 12px}
 button.like.on{border-color:var(--acc);color:var(--acc)}
@@ -56,8 +55,10 @@ button.like.on{border-color:var(--acc);color:var(--acc)}
 .seg{display:flex;gap:0;margin-bottom:14px;border:1px solid var(--bd);border-radius:8px;overflow:hidden}
 .seg button{flex:1;background:transparent;color:var(--mut);border-radius:0}
 .seg button.on{background:var(--acc);color:#fff}
-.divider{display:flex;align-items:center;gap:10px;color:var(--mut);font-size:12px;margin:4px 0}
-.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--bd)}
+.cap{display:flex;gap:8px;align-items:center}
+.cap input{flex:1}
+.cap img{height:46px;border:1px solid var(--bd);border-radius:8px;cursor:pointer;background:#0d1117}
+.cap-hint{font-size:11px;color:var(--mut)}
 </style>
 </head>
 <body>
@@ -108,11 +109,14 @@ button.like.on{border-color:var(--acc);color:var(--acc)}
       <button id="segReg">注册</button>
     </div>
     <div class="form">
-      <input id="auUser" placeholder="用户名（3-20位）" maxlength="20">
+      <input id="auUser" placeholder="用户名（3-20位，可填QQ号）" maxlength="20">
       <input id="auPass" type="password" placeholder="密码（至少6位）">
+      <div class="cap">
+        <input id="auCap" placeholder="验证码" maxlength="6" autocomplete="off">
+        <img id="capImg" alt="验证码" title="点击刷新">
+      </div>
+      <div class="cap-hint">看不清？点图片换一张</div>
       <div class="row"><button class="ghost" id="authCancel">取消</button><button id="authOk">确定</button></div>
-      <div class="divider">或</div>
-      <button class="qq" id="qqBtn">使用 QQ 登录 / 注册</button>
       <div class="err" id="authErr"></div>
     </div>
   </div>
@@ -137,6 +141,7 @@ let me = store.user;
 let state = {category:'', q:'', sort:'new', categories:[]};
 let currentPost = null;
 let authMode = 'login';
+let captchaId = '';
 
 async function req(path, opts={}){
   const headers = opts.body ? {'Content-Type':'application/json'} : {};
@@ -147,11 +152,16 @@ async function req(path, opts={}){
   return j;
 }
 
+async function loadCaptcha(){
+  captchaId=''; $('auCap').value='';
+  try{ const j = await req('?action=captcha'); captchaId=j.id; $('capImg').src=j.image; }
+  catch(e){ $('capImg').removeAttribute('src'); $('authErr').textContent='验证码加载失败'; }
+}
+
 function renderHeader(){
   if(me){
     const av = me.avatar ? `<img src="${esc(me.avatar)}" alt="">` : '';
-    const tag = me.provider==='qq' ? ' <span class="tag">QQ</span>' : '';
-    $('hdrUser').innerHTML = `${av}<span>你好，<b>${esc(me.username)}</b></span>${tag}<button class="ghost" id="logoutBtn">退出</button>`;
+    $('hdrUser').innerHTML = `${av}<span>你好，<b>${esc(me.username)}</b></span><button class="ghost" id="logoutBtn">退出</button>`;
     $('logoutBtn').onclick = doLogout;
   }else{
     $('hdrUser').innerHTML = `<button class="ghost" id="loginBtn">登录 / 注册</button>`;
@@ -178,57 +188,29 @@ function openAuth(mode){
   $('segLogin').classList.toggle('on', mode==='login');
   $('segReg').classList.toggle('on', mode==='register');
   $('authOk').textContent = mode==='login' ? '登录' : '注册';
+  loadCaptcha();
 }
 $('segLogin').onclick=()=>openAuth('login');
 $('segReg').onclick=()=>openAuth('register');
 $('authCancel').onclick=()=>$('authModal').classList.add('hidden');
+$('capImg').onclick=loadCaptcha;
 
 async function doAuth(){
-  const username=$('auUser').value.trim(), password=$('auPass').value;
+  const username=$('auUser').value.trim(), password=$('auPass').value, captcha_code=$('auCap').value.trim();
   const err=$('authErr'); err.textContent='';
   if(!username||!password){err.textContent='用户名和密码都要填';return;}
+  if(!captcha_code){err.textContent='请输入验证码';return;}
   $('authOk').disabled=true;
   try{
-    const j = await req('', {method:'POST', body:{action:authMode, username, password}});
+    const j = await req('', {method:'POST', body:{action:authMode, username, password, captcha_id:captchaId, captcha_code}});
     store.token = j.token; me = j.user; store.user = j.user;
     $('authModal').classList.add('hidden'); $('auPass').value='';
     renderHeader(); toast(authMode==='login'?'登录成功':'注册成功'); loadPosts();
     if(currentPost) openPost(currentPost);
-  }catch(e){ err.textContent = e.message; }
+  }catch(e){ err.textContent = e.message; loadCaptcha(); }
   finally{ $('authOk').disabled=false; }
 }
 $('authOk').onclick = doAuth;
-
-// ---------------- QQ 登录 ----------------
-function currentRedirect(){
-  return location.origin + location.pathname.replace(/index\.html$/,'');
-}
-async function doQqLogin(){
-  const err=$('authErr'); err.textContent='';
-  $('qqBtn').disabled=true;
-  try{
-    const redirect = currentRedirect();
-    const j = await req('?action=qq_start&redirect='+encodeURIComponent(redirect));
-    location.href = j.authorize_url;   // 跳转到 QQ 授权页
-  }catch(e){ err.textContent = e.message || 'QQ 登录不可用'; $('qqBtn').disabled=false; }
-}
-$('qqBtn').onclick = doQqLogin;
-
-async function handleQqCallback(){
-  const sp = new URLSearchParams(location.search);
-  const code = sp.get('code');
-  if(!code) return;
-  // 清掉地址栏里的 code
-  history.replaceState({}, document.title, location.origin + location.pathname);
-  try{
-    const redirect = currentRedirect();
-    const j = await req('', {method:'POST', body:{action:'qq_login', code, redirect_uri: redirect}});
-    store.token = j.token; me = j.user; store.user = j.user;
-    renderHeader(); toast('QQ 登录成功'); loadPosts();
-  }catch(e){
-    toast('QQ 登录失败：'+e.message);
-  }
-}
 
 async function doLogout(){
   try{ await req('', {method:'POST', body:{action:'logout'}}); }catch{}
@@ -340,9 +322,9 @@ let qTimer;
 $('qBox').oninput=e=>{clearTimeout(qTimer);qTimer=setTimeout(()=>{state.q=e.target.value.trim();loadPosts();},350);};
 $('sortBox').onchange=e=>{state.sort=e.target.value;loadPosts();};
 $('auPass').addEventListener('keydown',e=>{if(e.key==='Enter')doAuth();});
+$('auCap').addEventListener('keydown',e=>{if(e.key==='Enter')doAuth();});
 
 renderHeader();
-handleQqCallback();
 goHome();
 </script>
 </body>
