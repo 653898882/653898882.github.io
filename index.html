@@ -6,130 +6,146 @@
 <title>论坛</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0d1117;--card:#161b22;--bd:#30363d;--tx:#e6edf3;--mut:#8b949e;--acc:#388bfd;--bad:#f85149}
-body{font-family:-apple-system,"PingFang SC","Segoe UI",sans-serif;background:var(--bg);color:var(--tx);line-height:1.6}
-.wrap{max-width:860px;margin:0 auto;padding:18px 14px 90px}
-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-h1{font-size:21px;cursor:pointer;white-space:nowrap}
-h1:hover{color:var(--acc)}
-.hdr-user{display:flex;align-items:center;gap:10px;font-size:13px}
-.hdr-user b{color:var(--acc)}
-.hdr-user img{width:24px;height:24px;border-radius:50%;object-fit:cover}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",Arial,sans-serif;font-size:14px;color:#333;background:#eef1f5;line-height:1.7}
+a{color:#1a66b3;text-decoration:none}
+a:hover{text-decoration:underline;color:#d33}
 input,textarea,select,button{font-family:inherit;font-size:14px}
-input,textarea,select{width:100%;background:#0d1117;border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);outline:none}
-input:focus,textarea:focus,select:focus{border-color:var(--acc)}
-textarea{resize:vertical;min-height:88px}
-button{background:var(--acc);border:0;border-radius:8px;padding:9px 15px;color:#fff;cursor:pointer;font-weight:600}
-button:hover{filter:brightness(1.1)}
-button:disabled{opacity:.5;cursor:not-allowed}
-button.ghost{background:transparent;border:1px solid var(--bd);color:var(--tx)}
-button.danger{background:transparent;border:1px solid var(--bad);color:var(--bad);padding:5px 10px;font-size:12px}
-button.like{background:transparent;border:1px solid var(--bd);color:var(--tx);padding:6px 12px}
-button.like.on{border-color:var(--acc);color:var(--acc)}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:15px;margin-bottom:12px}
-.post{cursor:pointer;transition:.15s}
-.post:hover{border-color:var(--acc)}
-.post h3{font-size:16px;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.meta{font-size:12px;color:var(--mut)}
-.body{white-space:pre-wrap;word-break:break-word;margin:9px 0}
-.tag{background:#1f6feb22;color:var(--acc);border:1px solid #1f6feb55;border-radius:6px;padding:1px 8px;font-size:12px}
-.likes-badge{color:var(--mut);font-size:12px;margin-left:auto}
-.form{display:flex;flex-direction:column;gap:9px}
-.row{display:flex;gap:9px;justify-content:flex-end;align-items:center}
-.toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
-.toolbar input{flex:1;min-width:150px}
-.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.tab{background:transparent;border:1px solid var(--bd);color:var(--mut);padding:6px 13px;border-radius:20px;font-size:13px}
-.tab.on{background:var(--acc);border-color:var(--acc);color:#fff}
-.hidden{display:none}
-.empty{color:var(--mut);text-align:center;padding:36px 0}
-.reply{border-left:3px solid var(--bd);padding-left:12px;margin-bottom:12px}
-.reply .body{margin:4px 0}
-.reply-head{display:flex;align-items:center;gap:10px}
-.back{background:none;color:var(--mut);padding:6px 0;font-size:13px}
-.err{color:var(--bad);font-size:13px}
-.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#1f6feb;color:#fff;padding:8px 16px;border-radius:8px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:50}
-.toast.show{opacity:1}
-.modal{position:fixed;inset:0;background:#000000aa;display:flex;align-items:center;justify-content:center;padding:16px;z-index:40}
-.modal .card{width:100%;max-width:360px;margin:0}
-.seg{display:flex;gap:0;margin-bottom:14px;border:1px solid var(--bd);border-radius:8px;overflow:hidden}
-.seg button{flex:1;background:transparent;color:var(--mut);border-radius:0}
-.seg button.on{background:var(--acc);color:#fff}
+.container{max-width:960px;margin:0 auto;padding:0 8px 60px}
+/* 顶栏 */
+.topbar{background:#2b6cb0;color:#fff}
+.topbar .inner{max-width:960px;margin:0 auto;padding:0 8px;height:46px;display:flex;align-items:center;gap:14px}
+.logo{font-size:18px;font-weight:700;color:#fff;cursor:pointer;white-space:nowrap}
+.logo:hover{color:#fff;text-decoration:none}
+.topbar .search{flex:1;display:flex;max-width:320px;margin-left:auto}
+.topbar .search input{flex:1;border:0;border-radius:3px 0 0 3px;padding:6px 8px;background:#fff;color:#333}
+.topbar .search button{border:0;background:#1d5a94;color:#fff;padding:6px 12px;border-radius:0 3px 3px 0;cursor:pointer}
+.userbox{display:flex;align-items:center;gap:8px;font-size:13px;white-space:nowrap}
+.userbox a{color:#dbe9f7}
+/* 导航 */
+.nav{background:#fff;border-bottom:1px solid #cfd8e3}
+.nav .inner{max-width:960px;margin:0 auto;padding:0 8px;display:flex;gap:2px;flex-wrap:wrap}
+.nav a{display:block;padding:9px 16px;font-size:14px;color:#333;border-bottom:2px solid transparent}
+.nav a.on{color:#1a66b3;border-bottom-color:#2b6cb0;font-weight:700}
+.nav a:hover{background:#f4f7fb;text-decoration:none}
+/* 通用面板 */
+.panel{background:#fff;border:1px solid #cfd8e3;border-radius:4px;margin-top:12px;overflow:hidden}
+.panel-hd{background:#f5f8fb;border-bottom:1px solid #e1e8f0;padding:9px 12px;font-weight:700;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.panel-bd{padding:12px}
+.crumb{font-size:13px;color:#666;padding:10px 2px 0}
+.crumb a{color:#1a66b3}
+/* 表格 */
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid #eef2f6;vertical-align:middle}
+th{background:#f5f8fb;color:#666;font-weight:normal;font-size:13px}
+tr:hover td{background:#fafcff}
+.col-bd{width:44%}.col-num{width:9%;text-align:center}.col-last{width:26%;font-size:12px;color:#888}
+.bd-name{font-size:15px;font-weight:700}
+.bd-desc{font-size:12px;color:#999;font-weight:normal}
+/* 主题行 */
+.topic-title{font-size:14px}
+.topic-title .st{color:#c00;font-weight:normal;font-size:12px;border:1px solid #f0b0b0;border-radius:2px;padding:0 3px;margin-right:5px}
+.topic-title .ft{color:#e08a00;font-weight:normal;font-size:12px;border:1px solid #f2d49b;border-radius:2px;padding:0 3px;margin-right:5px}
+/* 楼层 */
+.post{border-bottom:1px solid #e8edf3;display:flex}
+.post:last-child{border-bottom:0}
+.post .pu{width:150px;flex:none;background:#f7f9fc;border-right:1px solid #e8edf3;padding:12px 10px;text-align:center}
+.post .pu .av{width:64px;height:64px;border-radius:4px;object-fit:cover;background:#dde5ee;border:1px solid #cfd8e3}
+.post .pu .nm{font-weight:700;margin-top:6px;word-break:break-all}
+.post .pu .lv{display:inline-block;font-size:12px;color:#2b6cb0;background:#e8f0fb;border-radius:3px;padding:0 7px;margin-top:4px}
+.post .pu .info{font-size:12px;color:#888;margin-top:6px;text-align:left;padding-left:4px}
+.post .pc{flex:1;padding:12px 14px;min-width:0}
+.post .pc .hd{display:flex;align-items:center;gap:10px;color:#999;font-size:12px;border-bottom:1px dashed #e8edf3;padding-bottom:6px;margin-bottom:8px}
+.post .pc .hd .floor{margin-left:auto;color:#bbb}
+.post .pc .body{white-space:pre-wrap;word-break:break-word;min-height:48px}
+.post .pc .quote{background:#f5f8fb;border-left:3px solid #cfd8e3;padding:6px 10px;margin-bottom:8px;color:#777;font-size:13px}
+.post .sig{border-top:1px dashed #e8edf3;margin-top:10px;padding-top:6px;color:#999;font-size:12px}
+.acts{margin-top:8px;display:flex;gap:12px;font-size:12px}
+/* 按钮 */
+.btn{display:inline-block;border:0;background:#2b6cb0;color:#fff;border-radius:3px;padding:7px 16px;cursor:pointer;font-size:14px}
+.btn:hover{background:#265f9a}
+.btn.gray{background:#e6ebf1;color:#333}
+.btn.gray:hover{background:#dbe2ea}
+.btn.mini{padding:2px 8px;font-size:12px}
+.btn.link{background:none;color:#1a66b3;padding:0}
+.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.right{margin-left:auto}
+/* 分页 */
+.pager{display:flex;gap:6px;align-items:center;justify-content:center;padding:12px;flex-wrap:wrap}
+.pager a,.pager span{display:inline-block;border:1px solid #cfd8e3;background:#fff;padding:3px 10px;border-radius:3px;color:#1a66b3;font-size:13px}
+.pager span.cur{background:#2b6cb0;border-color:#2b6cb0;color:#fff}
+.pager span.dis{color:#bbb;border-color:#e5e9ef}
+/* 表单 */
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.field label{font-size:13px;color:#555}
+.field input,.field textarea,.field select{border:1px solid #cfd8e3;border-radius:3px;padding:7px 9px;background:#fff}
+.field textarea{min-height:120px;resize:vertical}
+textarea{font-family:inherit}
 .cap{display:flex;gap:8px;align-items:center}
-.cap input{flex:1}
-.cap img{height:46px;border:1px solid var(--bd);border-radius:8px;cursor:pointer;background:#0d1117}
-.cap-hint{font-size:11px;color:var(--mut)}
+.cap img{height:42px;border:1px solid #cfd8e3;border-radius:3px;cursor:pointer;background:#f5f6f7}
+.err{color:#c00;font-size:13px}
+.ok{color:#1a7f37;font-size:13px}
+.muted{color:#999;font-size:12px}
+.center{text-align:center}
+/* 弹窗 */
+.modal{position:fixed;inset:0;background:#0006;display:flex;align-items:center;justify-content:center;padding:14px;z-index:50}
+.modal .box{background:#fff;border-radius:5px;width:100%;max-width:380px;padding:18px}
+.modal h3{margin-bottom:12px;font-size:16px}
+.tabs2{display:flex;border-bottom:1px solid #cfd8e3;margin-bottom:14px}
+.tabs2 button{background:none;border:0;padding:8px 14px;cursor:pointer;color:#555;border-bottom:2px solid transparent}
+.tabs2 button.on{color:#1a66b3;border-bottom-color:#2b6cb0;font-weight:700}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#333;color:#fff;padding:8px 18px;border-radius:4px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:60}
+.toast.show{opacity:.95}
+.hidden{display:none}
+@media(max-width:640px){
+  .post{flex-direction:column}
+  .post .pu{width:100%;display:flex;align-items:center;gap:10px;text-align:left;border-right:0;border-bottom:1px solid #e8edf3}
+  .post .pu .av{width:40px;height:40px}
+  .post .pu .info{margin:0;display:none}
+  .col-last{display:none}
+  th.col-last{display:none}
+}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1 id="home">📋 论坛</h1>
-    <div class="hdr-user" id="hdrUser"></div>
-  </header>
-
-  <section id="listView">
-    <div class="toolbar">
-      <input id="qBox" placeholder="搜索标题或内容…">
-      <select id="sortBox" style="width:110px"><option value="new">最新</option><option value="hot">最热</option></select>
-    </div>
-    <div class="tabs" id="tabs"></div>
-    <div class="card" id="composeCard">
-      <div class="form">
-        <input id="newTitle" placeholder="标题" maxlength="120">
-        <textarea id="newBody" placeholder="内容…" maxlength="5000"></textarea>
-        <div class="row">
-          <select id="newCat" style="width:130px"></select>
-          <button id="postBtn">发布</button>
-        </div>
-        <div class="err" id="listErr"></div>
-      </div>
-    </div>
-    <div id="posts"></div>
-  </section>
-
-  <section id="detailView" class="hidden">
-    <button class="back" id="back">← 返回列表</button>
-    <div class="card" id="detailCard"></div>
-    <div class="card" id="replyCard">
-      <div class="form">
-        <textarea id="replyBody" placeholder="回复…" maxlength="3000"></textarea>
-        <div class="row"><button id="replyBtn">回复</button></div>
-        <div class="err" id="replyErr"></div>
-      </div>
-    </div>
-    <div id="replies"></div>
-  </section>
-</div>
-
-<div class="modal hidden" id="authModal">
-  <div class="card">
-    <div class="seg">
-      <button id="segLogin" class="on">登录</button>
-      <button id="segReg">注册</button>
-    </div>
-    <div class="form">
-      <input id="auUser" placeholder="用户名（3-20位，可填QQ号）" maxlength="20">
-      <input id="auPass" type="password" placeholder="密码（至少6位）">
-      <div class="cap">
-        <input id="auCap" placeholder="验证码" maxlength="6" autocomplete="off">
-        <img id="capImg" alt="验证码" title="点击刷新">
-      </div>
-      <div class="cap-hint">验证码 30 秒内有效 · 看不清点图片换一张</div>
-      <div class="row"><button class="ghost" id="authCancel">取消</button><button id="authOk">确定</button></div>
-      <div class="err" id="authErr"></div>
-    </div>
+<div class="topbar"><div class="inner">
+  <a class="logo" href="#/">📋 论坛</a>
+  <div class="search">
+    <input id="topSearch" placeholder="搜索主题…">
+    <button id="topSearchBtn">搜索</button>
   </div>
-</div>
+</div></div>
+<div class="nav"><div class="inner" id="nav"></div></div>
+<div class="container" id="app"></div>
+
+<div class="modal hidden" id="authModal"><div class="box">
+  <h3 id="authTitle">登录</h3>
+  <div class="tabs2">
+    <button id="tabLogin" class="on">登录</button>
+    <button id="tabReg">注册</button>
+  </div>
+  <div class="field"><label>用户名（可填QQ号）</label><input id="auUser" maxlength="20"></div>
+  <div class="field"><label>密码</label><input id="auPass" type="password"></div>
+  <div class="field"><label>验证码（30 秒内有效，点击图片刷新）</label>
+    <div class="cap"><input id="auCap" maxlength="6" autocomplete="off"><img id="capImg" title="点击刷新"></div>
+  </div>
+  <div class="err" id="authErr"></div>
+  <div class="toolbar" style="margin-top:12px">
+    <button class="btn gray" id="authCancel">取消</button>
+    <button class="btn right" id="authOk">确定</button>
+  </div>
+</div></div>
 
 <div class="toast" id="toast"></div>
 
 <script>
 const API = "https://jgwadmeqhzgzlkbbjcik.supabase.co/functions/v1/forum";
 const $ = id => document.getElementById(id);
-const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmt = t => new Date(t).toLocaleString('zh-CN',{hour12:false});
+const app = $('app');
+const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = t => t ? new Date(t).toLocaleString('zh-CN',{hour12:false}) : '';
+const fmtD = t => t ? new Date(t).toLocaleDateString('zh-CN') : '';
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);}
+function level(n){ n=n||0; if(n<10)return'新手上路'; if(n<50)return'初级会员'; if(n<200)return'中级会员'; if(n<500)return'高级会员'; return'论坛元老'; }
 
 const store = {
   get token(){return localStorage.getItem('forum_token')||'';},
@@ -138,194 +154,423 @@ const store = {
   set user(u){u?localStorage.setItem('forum_user',JSON.stringify(u)):localStorage.removeItem('forum_user');}
 };
 let me = store.user;
-let state = {category:'', q:'', sort:'new', categories:[]};
-let currentPost = null;
-let authMode = 'login';
-let captchaId = '';
+let boards = [];
 
 async function req(path, opts={}){
-  const headers = opts.body ? {'Content-Type':'application/json'} : {};
-  if(store.token) headers['Authorization'] = 'Bearer '+store.token;
-  const r = await fetch(API+path, {method:opts.method||'GET', headers, body:opts.body?JSON.stringify(opts.body):undefined});
+  const headers = {};
+  if(opts.body) headers['Content-Type']='application/json';
+  if(store.token) headers['Authorization']='Bearer '+store.token;
+  const r = await fetch(API+path,{method:opts.method||'GET',headers,body:opts.body?JSON.stringify(opts.body):undefined});
   const j = await r.json().catch(()=>({}));
-  if(!r.ok) throw new Error(j.error || ('HTTP '+r.status));
+  if(!r.ok) throw new Error(j.error||('HTTP '+r.status));
   return j;
 }
 
-async function loadCaptcha(){
-  captchaId=''; $('auCap').value='';
-  try{ const j = await req('?action=captcha'); captchaId=j.id; $('capImg').src=j.image; }
-  catch(e){ $('capImg').removeAttribute('src'); $('authErr').textContent='验证码加载失败'; }
-}
-
-function renderHeader(){
+// ---------------- 顶栏/导航 ----------------
+function renderTop(){
+  const ub = document.querySelector('.userbox');
+  const box = ub || document.createElement('div');
+  if(!ub){ box.className='userbox'; document.querySelector('.topbar .inner').appendChild(box); }
   if(me){
-    const av = me.avatar ? `<img src="${esc(me.avatar)}" alt="">` : '';
-    $('hdrUser').innerHTML = `${av}<span>你好，<b>${esc(me.username)}</b></span><button class="ghost" id="logoutBtn">退出</button>`;
+    box.innerHTML = `<a href="#/me">${esc(me.username)}${me.is_admin?' <b>(管理)</b>':''}</a><a href="javascript:;" id="logoutBtn">退出</a>`;
     $('logoutBtn').onclick = doLogout;
   }else{
-    $('hdrUser').innerHTML = `<button class="ghost" id="loginBtn">登录 / 注册</button>`;
-    $('loginBtn').onclick = ()=>openAuth('login');
+    box.innerHTML = `<a href="javascript:;" id="loginLink">登录</a><a href="javascript:;" id="regLink">注册</a>`;
+    $('loginLink').onclick = ()=>openAuth('login');
+    $('regLink').onclick = ()=>openAuth('register');
   }
-  $('composeCard').classList.toggle('hidden', !me);
-  $('replyCard').classList.toggle('hidden', !me);
+}
+function renderNav(active){
+  $('nav').innerHTML = `<a href="#/" class="${active==='home'?'on':''}">首页</a>` +
+    boards.map(b=>`<a href="#/b/${b.slug}" class="${active===b.slug?'on':''}">${esc(b.name)}</a>`).join('');
+}
+async function loadBoards(){
+  if(boards.length) return boards;
+  try{ const j = await req('?action=boards'); boards = j.boards||[]; }catch(e){}
+  return boards;
 }
 
-function renderTabs(){
-  const cats = ['全部', ...state.categories];
-  $('tabs').innerHTML = cats.map(c=>{
-    const val = c==='全部' ? '' : c;
-    return `<button class="tab ${state.category===val?'on':''}" data-cat="${esc(val)}">${esc(c)}</button>`;
-  }).join('');
-  $('tabs').querySelectorAll('.tab').forEach(b=>b.onclick=()=>{state.category=b.dataset.cat;renderTabs();loadPosts();});
-  $('newCat').innerHTML = state.categories.map(c=>`<option>${esc(c)}</option>`).join('');
+// ---------------- 路由 ----------------
+function parseHash(){
+  const h = location.hash.replace(/^#/,'') || '/';
+  const [path, query] = h.split('?');
+  const q = new URLSearchParams(query||'');
+  const seg = path.split('/').filter(Boolean);
+  return {seg, q};
+}
+async function route(){
+  const {seg,q} = parseHash();
+  window.scrollTo(0,0);
+  await loadBoards();
+  try{
+    if(seg[0]==='b'){ renderNav(seg[1]); return topicList(seg[1], q); }
+    if(seg[0]==='t'){ renderNav(''); return thread(seg[1], q); }
+    if(seg[0]==='u'){ renderNav(''); return profile(seg[1]); }
+    if(seg[0]==='me'){ renderNav(''); return meCenter(q.get('tab')||'info'); }
+    if(seg[0]==='search'){ renderNav(''); return searchPage(q.get('q')||''); }
+    renderNav('home'); return home();
+  }catch(e){ app.innerHTML = `<div class="panel"><div class="panel-bd err">加载失败：${esc(e.message)}</div></div>`; }
+}
+window.addEventListener('hashchange', route);
+
+// ---------------- 首页：版块列表 ----------------
+async function home(){
+  const j = await req('?action=boards');
+  boards = j.boards||[];
+  renderNav('home');
+  const rows = boards.map(b=>`
+    <tr>
+      <td class="col-bd">
+        <div class="bd-name"><a href="#/b/${esc(b.slug)}">${esc(b.name)}</a></div>
+        <div class="bd-desc">${esc(b.description)}</div>
+      </td>
+      <td class="col-num">${b.topic_count}</td>
+      <td class="col-num">${b.reply_count}</td>
+      <td class="col-last">${b.last_post?`<a href="#/t/${b.last_post.id}">${esc((b.last_post.title||'').slice(0,14))}</a><br>${esc(b.last_post.author)} · ${fmt(b.last_post.at)}`:'<span class="muted">暂无</span>'}</td>
+    </tr>`).join('');
+  app.innerHTML = `
+    <div class="crumb">当前位置：<a href="#/">首页</a></div>
+    <div class="panel">
+      <div class="panel-hd">版块列表</div>
+      <table>
+        <thead><tr><th class="col-bd">版块</th><th class="col-num">主题</th><th class="col-num">帖数</th><th class="col-last">最后发表</th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="4" class="center muted">暂无版块</td></tr>'}</tbody>
+      </table>
+    </div>`;
 }
 
+// ---------------- 版块页：主题列表 ----------------
+async function topicList(slug, q){
+  const page = Math.max(1, parseInt(q.get('page')||'1',10));
+  const sort = q.get('sort')==='hot'?'hot':'new';
+  const j = await req(`?board=${encodeURIComponent(slug)}&page=${page}&sort=${sort}`);
+  const b = j.board || {name:slug};
+  const rows = (j.posts||[]).map(p=>`
+    <tr>
+      <td class="col-bd topic-title">
+        ${p.is_sticky?'<span class="st">置顶</span>':''}${p.is_featured?'<span class="ft">精华</span>':''}
+        <a href="#/t/${p.id}">${esc(p.title)}</a>
+      </td>
+      <td>${esc(p.author)}</td>
+      <td class="col-num">${p.reply_count||0} / ${p.views||0}</td>
+      <td class="col-last">${esc(p.last_reply_by||p.author)}<br>${fmt(p.last_reply_at||p.created_at)}</td>
+    </tr>`).join('');
+  const newBtn = me ? `<button class="btn right" id="newPostBtn">发表主题</button>` : `<span class="right muted">登录后可发帖</span>`;
+  app.innerHTML = `
+    <div class="crumb">当前位置：<a href="#/">首页</a> &raquo; <a href="#/b/${esc(b.slug||slug)}">${esc(b.name)}</a></div>
+    <div class="panel">
+      <div class="panel-hd">
+        ${esc(b.name||slug)} <span class="muted">${esc(b.description||'')}</span>
+        <span class="right" style="display:flex;gap:8px;align-items:center">
+          <select id="sortSel" class="btn gray" style="padding:5px 8px">
+            <option value="new"${sort==='new'?' selected':''}>最新</option>
+            <option value="hot"${sort==='hot'?' selected':''}>最热</option>
+          </select>
+          ${newBtn}
+        </span>
+      </div>
+      <table>
+        <thead><tr><th class="col-bd">主题</th><th>作者</th><th class="col-num">回复/查看</th><th class="col-last">最后发表</th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="4" class="center muted">本版还没有主题</td></tr>'}</tbody>
+      </table>
+      ${pager(j.page, j.pages, `#/b/${slug}?sort=${sort}`)}
+    </div>`;
+  $('sortSel').onchange = e=>location.hash = `#/b/${slug}?sort=${e.target.value}`;
+  if($('newPostBtn')) $('newPostBtn').onclick = ()=>newPost(b.id, b.slug);
+}
+
+function pager(page, pages, base){
+  if(pages<=1) return '';
+  const sep = base.includes('?')?'&':'?';
+  let h = '<div class="pager">';
+  h += page>1 ? `<a href="${base}${sep}page=${page-1}">上一页</a>` : '<span class="dis">上一页</span>';
+  const from = Math.max(1,page-2), to = Math.min(pages,from+4);
+  for(let i=from;i<=to;i++) h += i===page ? `<span class="cur">${i}</span>` : `<a href="${base}${sep}page=${i}">${i}</a>`;
+  h += page<pages ? `<a href="${base}${sep}page=${page+1}">下一页</a>` : '<span class="dis">下一页</span>';
+  h += `<span class="dis">${page}/${pages}</span></div>`;
+  return h;
+}
+
+// ---------------- 发帖 ----------------
+function newPost(boardId, slug){
+  const opts = boards.map(b=>`<option value="${b.id}"${b.id===boardId?' selected':''}>${esc(b.name)}</option>`).join('');
+  app.innerHTML = `
+    <div class="crumb">当前位置：<a href="#/">首页</a> &raquo; <a href="#/b/${esc(slug)}">${esc(slug)}</a> &raquo; 发表主题</div>
+    <div class="panel">
+      <div class="panel-hd">发表新主题</div>
+      <div class="panel-bd">
+        <div class="field"><label>版块</label><select id="npBoard">${opts}</select></div>
+        <div class="field"><label>标题</label><input id="npTitle" maxlength="120"></div>
+        <div class="field"><label>内容</label><textarea id="npBody" maxlength="20000"></textarea></div>
+        <div class="err" id="npErr"></div>
+        <div class="toolbar" style="margin-top:10px">
+          <button class="btn gray" id="npCancel">返回</button>
+          <button class="btn right" id="npSubmit">发表</button>
+        </div>
+      </div>
+    </div>`;
+  $('npCancel').onclick = ()=>history.back();
+  $('npSubmit').onclick = async ()=>{
+    const title=$('npTitle').value.trim(), body=$('npBody').value.trim(), board_id=$('npBoard').value;
+    const e=$('npErr'); e.textContent='';
+    if(!title||!body){ e.textContent='标题和内容都要填'; return; }
+    $('npSubmit').disabled=true;
+    try{ const r=await req('',{method:'POST',body:{action:'post',board_id,title,body}}); toast('发表成功'); location.hash='#/t/'+r.post.id; }
+    catch(err){ e.textContent=err.message; $('npSubmit').disabled=false; }
+  };
+}
+
+// ---------------- 主题（楼层） ----------------
+async function thread(id, q){
+  const page = Math.max(1, parseInt(q.get('page')||'1',10));
+  const j = await req(`?post_id=${encodeURIComponent(id)}&page=${page}`);
+  const p = j.post;
+  const canMod = !!p.canMod;
+  const floor1 = `
+    <div class="post">
+      <div class="pu">
+        ${userCell(p.user, p.author)}
+      </div>
+      <div class="pc">
+        <div class="hd"><b>楼主</b><span>${fmt(p.created_at)}</span>${p.updated_at?`<span class="muted">（编辑于 ${fmt(p.updated_at)}）</span>`:''}<span class="floor">1楼</span></div>
+        <div class="body">${esc(p.body)}</div>
+        ${p.user&&p.user.signature?`<div class="sig">签名：${esc(p.user.signature)}</div>`:''}
+        <div class="acts">
+          <a href="javascript:;" class="quoteBtn" data-floor="1">引用</a>
+          ${p.canEdit?`<a href="javascript:;" id="editPostBtn">编辑</a>`:''}
+          ${p.canDelete?`<a href="javascript:;" id="delPostBtn">删除</a>`:''}
+          <a href="javascript:;" id="likeBtn">❤ 点赞 ${p.likes||0}${p.liked?'（已赞）':''}</a>
+          ${canMod?`<a href="javascript:;" id="stickyBtn">${p.is_sticky?'取消置顶':'置顶'}</a><a href="javascript:;" id="featBtn">${p.is_featured?'取消精华':'加精'}</a>`:''}
+        </div>
+      </div>
+    </div>`;
+  const rows = (j.replies||[]).map(r=>`
+    <div class="post">
+      <div class="pu">${userCell(r.user, r.author)}</div>
+      <div class="pc">
+        <div class="hd"><span>${fmt(r.created_at)}</span><span class="floor">${r.floor}楼</span></div>
+        ${esc(r.body)}
+        <div class="acts">
+          <a href="javascript:;" class="quoteBtn" data-floor="${r.floor}" data-id="${r.id}" data-author="${esc(r.author)}">引用</a>
+          ${r.canDelete?`<a href="javascript:;" class="delReply" data-id="${r.id}">删除</a>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+  const replyBox = me ? `
+    <div class="panel">
+      <div class="panel-hd">发表回复</div>
+      <div class="panel-bd">
+        <div id="quoteBox" class="hidden quote" style="background:#f5f8fb;border-left:3px solid #cfd8e3;padding:6px 10px;margin-bottom:8px;color:#777"></div>
+        <div class="field"><textarea id="rpBody" maxlength="3000" placeholder="输入回复内容…"></textarea></div>
+        <div class="err" id="rpErr"></div>
+        <div class="toolbar" style="margin-top:8px"><button class="btn right" id="rpSubmit">发表回复</button></div>
+      </div>
+    </div>` : `<div class="panel"><div class="panel-bd center muted">请先登录后回复</div></div>`;
+
+  app.innerHTML = `
+    <div class="crumb">当前位置：<a href="#/">首页</a> &raquo; <a href="#/t/${p.id}">主题</a></div>
+    <div class="panel">
+      <div class="panel-hd">
+        ${p.is_sticky?'<span class="st">置顶</span>':''}${p.is_featured?'<span class="ft">精华</span>':''}
+        ${esc(p.title)}
+        <span class="right muted">回复 ${p.reply_count||0} · 查看 ${(p.views||0)+1}</span>
+      </div>
+      ${floor1}
+      ${rows}
+      ${pager(j.page, j.pages, `#/t/${id}`)}
+    </div>
+    ${replyBox}`;
+
+  // 事件
+  $('likeBtn').onclick = async ()=>{ if(!me) return openAuth('login'); try{ await req('',{method:'POST',body:{action:'like',post_id:p.id}}); route(); }catch(e){toast(e.message);} };
+  if($('delPostBtn')) $('delPostBtn').onclick = async ()=>{ if(!confirm('确定删除该主题？'))return; try{ await req('',{method:'POST',body:{action:'delete_post',id:p.id}}); toast('已删除'); location.hash='#/'; }catch(e){toast(e.message);} };
+  if($('editPostBtn')) $('editPostBtn').onclick = ()=>editPost(p);
+  if($('stickyBtn')) $('stickyBtn').onclick = async ()=>{ try{ await req('',{method:'POST',body:{action:'mod_post',id:p.id,field:'sticky',value:!p.is_sticky}}); toast('已更新'); route(); }catch(e){toast(e.message);} };
+  if($('featBtn')) $('featBtn').onclick = async ()=>{ try{ await req('',{method:'POST',body:{action:'mod_post',id:p.id,field:'feature',value:!p.is_featured}}); toast('已更新'); route(); }catch(e){toast(e.message);} };
+  document.querySelectorAll('.delReply').forEach(a=>a.onclick=async()=>{ if(!confirm('删除该回复？'))return; try{ await req('',{method:'POST',body:{action:'delete_reply',id:a.dataset.id}}); toast('已删除'); route(); }catch(e){toast(e.message);} });
+  document.querySelectorAll('.quoteBtn').forEach(a=>a.onclick=()=>{
+    if(!me) return openAuth('login');
+    const f=a.dataset.floor;
+    const content = f==='1' ? p.body : (j.replies.find(r=>String(r.floor)===f)||{}).body||'';
+    $('rpBody').value = `@${f==='1'?p.author:a.dataset.author} ：${content.slice(0,80)}\n` + ($('rpBody').value||'');
+    $('rpBody').focus(); window.scrollTo(0,document.body.scrollHeight);
+    if($('quoteBox')){ $('quoteBox').textContent='引用 '+ (f==='1'?p.author:a.dataset.author) +' 的第 '+f+' 楼'; $('quoteBox').classList.remove('hidden'); }
+  });
+  if($('rpSubmit')) $('rpSubmit').onclick = async ()=>{
+    const body=$('rpBody').value.trim(); const e=$('rpErr'); e.textContent='';
+    if(!body){ e.textContent='回复内容不能为空'; return; }
+    $('rpSubmit').disabled=true;
+    try{ await req('',{method:'POST',body:{action:'reply',post_id:p.id,body}}); toast('回复成功'); route(); }
+    catch(err){ e.textContent=err.message; $('rpSubmit').disabled=false; }
+  };
+}
+function userCell(u, fallback){
+  const name = u?u.username:fallback;
+  const av = u&&u.avatar ? `<img class="av" src="${esc(u.avatar)}">` : `<img class="av">`;
+  const link = u?`<a href="#/u/${u.id}">${esc(name)}</a>`:esc(name);
+  return `${av}<div class="nm">${link}</div><div class="lv">${level(u&&u.post_count)}</div>
+    <div class="info">帖子：${u?u.post_count:'-'}<br>注册：${u?fmtD(u.created_at):'-'}${u&&u.is_admin?'<br><b>管理员</b>':''}</div>`;
+}
+
+function editPost(p){
+  app.innerHTML = `
+    <div class="crumb">编辑主题</div>
+    <div class="panel"><div class="panel-hd">编辑主题</div><div class="panel-bd">
+      <div class="field"><label>标题</label><input id="epTitle" maxlength="120" value="${esc(p.title)}"></div>
+      <div class="field"><label>内容</label><textarea id="epBody" style="min-height:200px" maxlength="20000">${esc(p.body)}</textarea></div>
+      <div class="err" id="epErr"></div>
+      <div class="toolbar" style="margin-top:10px">
+        <button class="btn gray" id="epCancel">返回</button>
+        <button class="btn right" id="epSave">保存</button>
+      </div>
+    </div></div>`;
+  $('epCancel').onclick = ()=>route();
+  $('epSave').onclick = async ()=>{
+    const title=$('epTitle').value.trim(), body=$('epBody').value.trim(); const e=$('epErr'); e.textContent='';
+    if(!title||!body){ e.textContent='标题和内容都要填'; return; }
+    try{ await req('',{method:'POST',body:{action:'post',id:p.id,title,body}}); toast('已保存'); route(); }
+    catch(err){ e.textContent=err.message; }
+  };
+}
+
+// ---------------- 搜索 ----------------
+async function searchPage(q){
+  const j = await req(`?q=${encodeURIComponent(q)}&per=30`);
+  const rows = (j.posts||[]).map(p=>`
+    <tr><td class="col-bd topic-title"><a href="#/t/${p.id}">${esc(p.title)}</a></td>
+      <td>${esc(p.author)}</td><td class="col-num">${p.reply_count||0}</td><td class="col-last">${fmt(p.created_at)}</td></tr>`).join('');
+  app.innerHTML = `
+    <div class="crumb">当前位置：<a href="#/">首页</a> &raquo; 搜索</div>
+    <div class="panel">
+      <div class="panel-hd">搜索“${esc(q)}” <span class="muted">共 ${j.total||0} 条</span></div>
+      <table><thead><tr><th class="col-bd">主题</th><th>作者</th><th class="col-num">回复</th><th class="col-last">发表时间</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="4" class="center muted">没有匹配结果</td></tr>'}</tbody></table>
+    </div>`;
+}
+
+// ---------------- 个人资料页 ----------------
+async function profile(id){
+  const j = await req(`?action=profile&id=${encodeURIComponent(id)}`);
+  const u = j.user;
+  const rows = (j.posts||[]).map(p=>`
+    <tr><td><a href="#/t/${p.id}">${esc(p.title)}</a></td><td class="col-num">${p.reply_count||0}</td><td class="col-num">${p.views||0}</td><td class="col-last">${fmt(p.created_at)}</td></tr>`).join('');
+  app.innerHTML = `
+    <div class="crumb">当前位置：<a href="#/">首页</a> &raquo; 用户资料</div>
+    <div class="panel"><div class="panel-hd">${esc(u.username)} 的资料</div><div class="panel-bd">
+      <table>
+        <tr><td style="width:120px" class="muted">用户名</td><td>${esc(u.username)}${u.is_admin?' <b style="color:#c00">管理员</b>':''}</td></tr>
+        <tr><td class="muted">等级</td><td>${level(u.post_count)}</td></tr>
+        <tr><td class="muted">帖子数</td><td>${u.post_count}</td></tr>
+        <tr><td class="muted">注册时间</td><td>${fmt(u.created_at)}</td></tr>
+        <tr><td class="muted">最后活动</td><td>${fmt(u.last_active)}</td></tr>
+        <tr><td class="muted">性别</td><td>${esc(u.gender||'保密')}</td></tr>
+        <tr><td class="muted">签名</td><td>${esc(u.signature||'（空）')}</td></tr>
+      </table>
+    </div></div>
+    <div class="panel"><div class="panel-hd">TA 的主题</div>
+      <table><thead><tr><th>标题</th><th class="col-num">回复</th><th class="col-num">查看</th><th class="col-last">发表</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="4" class="center muted">暂无</td></tr>'}</tbody></table>
+    </div>`;
+}
+
+// ---------------- 用户中心 ----------------
+async function meCenter(tab){
+  if(!me) return openAuth('login');
+  let body='';
+  if(tab==='info'){
+    body = `
+      <div class="field"><label>用户名</label><input value="${esc(me.username)}" disabled></div>
+      <div class="field"><label>头像图片 URL（可留空）</label><input id="pfAvatar" value="${esc(me.avatar||'')}" placeholder="https://…"></div>
+      <div class="field"><label>性别</label><select id="pfGender">
+        <option value="">保密</option><option value="男"${me.gender==='男'?' selected':''}>男</option><option value="女"${me.gender==='女'?' selected':''}>女</option></select></div>
+      <div class="field"><label>个性签名</label><textarea id="pfSign" maxlength="200" style="min-height:70px">${esc(me.signature||'')}</textarea></div>
+      <div class="err" id="pfErr"></div><div class="ok" id="pfOk"></div>
+      <div class="toolbar" style="margin-top:10px"><button class="btn right" id="pfSave">保存资料</button></div>`;
+  }else if(tab==='pwd'){
+    body = `
+      <div class="field"><label>原密码</label><input id="pwOld" type="password"></div>
+      <div class="field"><label>新密码（至少6位）</label><input id="pwNew" type="password"></div>
+      <div class="field"><label>确认新密码</label><input id="pwNew2" type="password"></div>
+      <div class="err" id="pwErr"></div>
+      <div class="toolbar" style="margin-top:10px"><button class="btn right" id="pwSave">修改密码</button></div>`;
+  }else{
+    body = `<div id="myPosts" class="muted">加载中…</div>`;
+  }
+  app.innerHTML = `
+    <div class="crumb">当前位置：<a href="#/">首页</a> &raquo; 用户中心</div>
+    <div class="panel">
+      <div class="panel-hd">用户中心</div>
+      <div class="tabs2" style="padding:0 10px;margin:0">
+        <button class="${tab==='info'?'on':''}" onclick="location.hash='#/me?tab=info'">基本资料</button>
+        <button class="${tab==='pwd'?'on':''}" onclick="location.hash='#/me?tab=pwd'">修改密码</button>
+        <button class="${tab==='posts'?'on':''}" onclick="location.hash='#/me?tab=posts'">我的主题</button>
+      </div>
+      <div class="panel-bd" style="max-width:520px">${body}</div>
+    </div>`;
+  if(tab==='info') $('pfSave').onclick = async ()=>{
+    const e=$('pfErr'),o=$('pfOk'); e.textContent='';o.textContent='';
+    try{ const r=await req('',{method:'POST',body:{action:'profile_update',avatar:$('pfAvatar').value.trim(),gender:$('pfGender').value,signature:$('pfSign').value}});
+      me = Object.assign({}, me, r.user); store.user = me; renderTop(); o.textContent='已保存'; toast('资料已保存');
+    }catch(err){ e.textContent=err.message; }
+  };
+  if(tab==='pwd') $('pwSave').onclick = async ()=>{
+    const e=$('pwErr'); e.textContent='';
+    if($('pwNew').value!==$('pwNew2').value){ e.textContent='两次新密码不一致'; return; }
+    try{ await req('',{method:'POST',body:{action:'change_password',old_password:$('pwOld').value,new_password:$('pwNew').value}});
+      toast('密码已修改，请重新登录'); setTimeout(doLogout, 800);
+    }catch(err){ e.textContent=err.message; }
+  };
+  if(tab==='posts'){
+    try{ const r=await req(`?action=profile&id=${me.id}`);
+      const rows=(r.posts||[]).map(p=>`<tr><td><a href="#/t/${p.id}">${esc(p.title)}</a></td><td class="col-num">${p.reply_count||0}</td><td class="col-last">${fmt(p.created_at)}</td></tr>`).join('');
+      $('myPosts').outerHTML = `<table><thead><tr><th>标题</th><th class="col-num">回复</th><th class="col-last">发表</th></tr></thead><tbody>${rows||'<tr><td colspan="3" class="center muted">暂无</td></tr>'}</tbody></table>`;
+    }catch(err){ $('myPosts').textContent='加载失败：'+err.message; }
+  }
+}
+
+// ---------------- 登录/注册 ----------------
+let authMode='login', captchaId='';
 function openAuth(mode){
-  authMode = mode;
-  $('authModal').classList.remove('hidden');
-  $('authErr').textContent='';
-  $('segLogin').classList.toggle('on', mode==='login');
-  $('segReg').classList.toggle('on', mode==='register');
-  $('authOk').textContent = mode==='login' ? '登录' : '注册';
+  authMode=mode; $('authModal').classList.remove('hidden'); $('authErr').textContent='';
+  $('authTitle').textContent = mode==='login'?'登录':'注册';
+  $('tabLogin').classList.toggle('on',mode==='login'); $('tabReg').classList.toggle('on',mode==='register');
+  $('authOk').textContent = mode==='login'?'登录':'注册';
   loadCaptcha();
 }
-$('segLogin').onclick=()=>openAuth('login');
-$('segReg').onclick=()=>openAuth('register');
+$('tabLogin').onclick=()=>openAuth('login');
+$('tabReg').onclick=()=>openAuth('register');
 $('authCancel').onclick=()=>$('authModal').classList.add('hidden');
 $('capImg').onclick=loadCaptcha;
-
-async function doAuth(){
+async function loadCaptcha(){
+  captchaId=''; $('auCap').value='';
+  try{ const j=await req('?action=captcha'); captchaId=j.id; $('capImg').src=j.image; }
+  catch(e){ $('authErr').textContent='验证码加载失败'; }
+}
+$('authOk').onclick = async ()=>{
   const username=$('auUser').value.trim(), password=$('auPass').value, captcha_code=$('auCap').value.trim();
-  const err=$('authErr'); err.textContent='';
-  if(!username||!password){err.textContent='用户名和密码都要填';return;}
-  if(!captcha_code){err.textContent='请输入验证码';return;}
+  const e=$('authErr'); e.textContent='';
+  if(!username||!password){ e.textContent='用户名和密码都要填'; return; }
+  if(!captcha_code){ e.textContent='请输入验证码'; return; }
   $('authOk').disabled=true;
   try{
-    const j = await req('', {method:'POST', body:{action:authMode, username, password, captcha_id:captchaId, captcha_code}});
-    store.token = j.token; me = j.user; store.user = j.user;
+    const j = await req('',{method:'POST',body:{action:authMode,username,password,captcha_id:captchaId,captcha_code}});
+    store.token=j.token; me=j.user; store.user=j.user;
     $('authModal').classList.add('hidden'); $('auPass').value='';
-    renderHeader(); toast(authMode==='login'?'登录成功':'注册成功'); loadPosts();
-    if(currentPost) openPost(currentPost);
-  }catch(e){ err.textContent = e.message; loadCaptcha(); }
+    renderTop(); toast(authMode==='login'?'登录成功':'注册成功'); route();
+  }catch(err){ e.textContent=err.message; loadCaptcha(); }
   finally{ $('authOk').disabled=false; }
-}
-$('authOk').onclick = doAuth;
-
+};
 async function doLogout(){
-  try{ await req('', {method:'POST', body:{action:'logout'}}); }catch{}
-  store.token=''; me=null; store.user=null;
-  renderHeader(); toast('已退出'); loadPosts();
-  if(currentPost){ currentPost=null; goHome(); }
+  try{ await req('',{method:'POST',body:{action:'logout'}}); }catch{}
+  store.token=''; me=null; store.user=null; renderTop(); toast('已退出'); location.hash='#/'; route();
 }
 
-async function loadPosts(){
-  const box=$('posts'); box.innerHTML='<div class="empty">加载中…</div>';
-  try{
-    const p = new URLSearchParams();
-    if(state.category) p.set('category', state.category);
-    if(state.q) p.set('q', state.q);
-    p.set('sort', state.sort);
-    const j = await req('?'+p.toString());
-    state.categories = j.categories || [];
-    renderTabs();
-    const posts = j.posts || [];
-    if(!posts.length){ box.innerHTML='<div class="empty">还没有帖子'+(me?'，来发第一帖吧':'')+'</div>'; return; }
-    box.innerHTML = posts.map(p=>`
-      <div class="card post" data-id="${p.id}">
-        <h3>${esc(p.title)} <span class="tag">${esc(p.category||'综合')}</span>
-          <span class="likes-badge">❤ ${p.likes||0}</span></h3>
-        <div class="meta">${esc(p.author)} · ${fmt(p.created_at)}</div>
-        <div class="body">${esc((p.body||'').slice(0,150))}${(p.body||'').length>150?'…':''}</div>
-      </div>`).join('');
-    box.querySelectorAll('.post').forEach(el=>el.onclick=()=>openPost(el.dataset.id));
-  }catch(e){ box.innerHTML='<div class="empty">加载失败：'+esc(e.message)+'</div>'; }
-}
+// 顶部搜索
+$('topSearchBtn').onclick = ()=>{ const q=$('topSearch').value.trim(); if(q) location.hash = '#/search?q='+encodeURIComponent(q); };
+$('topSearch').addEventListener('keydown',e=>{ if(e.key==='Enter') $('topSearchBtn').click(); });
 
-async function openPost(id){
-  currentPost=id;
-  $('listView').classList.add('hidden');
-  $('detailView').classList.remove('hidden');
-  try{
-    const j = await req('?post_id='+encodeURIComponent(id));
-    const p = j.post;
-    $('detailCard').innerHTML = `
-      <h3 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">${esc(p.title)} <span class="tag">${esc(p.category||'综合')}</span></h3>
-      <div class="meta">${esc(p.author)} · ${fmt(p.created_at)}</div>
-      <div class="body">${esc(p.body)}</div>
-      <div class="row" style="justify-content:flex-start">
-        <button class="like ${p.liked?'on':''}" id="likeBtn">❤ ${p.likes||0}</button>
-        ${p.canDelete?'<button class="danger" id="delPostBtn">删除帖子</button>':''}
-      </div>`;
-    renderHeader();
-    $('likeBtn').onclick = doLike;
-    if(p.canDelete) $('delPostBtn').onclick = ()=>doDeletePost(p.id);
-    renderReplies(j.replies||[]);
-  }catch(e){ $('detailCard').innerHTML='<div class="err">加载失败：'+esc(e.message)+'</div>'; $('replies').innerHTML=''; }
-}
-
-function renderReplies(list){
-  const box=$('replies');
-  if(!list.length){ box.innerHTML='<div class="empty">暂无回复</div>'; return; }
-  box.innerHTML = list.map(r=>`
-    <div class="card reply">
-      <div class="reply-head"><div class="meta">${esc(r.author)} · ${fmt(r.created_at)}</div>
-        ${r.canDelete?`<button class="danger" data-del="${r.id}" style="margin-left:auto">删除</button>`:''}</div>
-      <div class="body">${esc(r.body)}</div>
-    </div>`).join('');
-  box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>doDeleteReply(b.dataset.del));
-}
-
-async function doLike(){
-  if(!me){ toast('请先登录'); openAuth('login'); return; }
-  try{ await req('', {method:'POST', body:{action:'like', post_id:currentPost}}); openPost(currentPost); }
-  catch(e){ toast(e.message); }
-}
-
-async function createPost(){
-  const title=$('newTitle').value.trim(), body=$('newBody').value.trim(), category=$('newCat').value;
-  const err=$('listErr'); err.textContent='';
-  if(!title||!body){err.textContent='标题和内容都要填';return;}
-  $('postBtn').disabled=true;
-  try{ await req('',{method:'POST',body:{action:'post',title,body,category}}); $('newTitle').value='';$('newBody').value=''; toast('发布成功'); loadPosts(); }
-  catch(e){ err.textContent=e.message; }
-  finally{ $('postBtn').disabled=false; }
-}
-
-async function createReply(){
-  const body=$('replyBody').value.trim(); const err=$('replyErr'); err.textContent='';
-  if(!body){err.textContent='回复内容不能为空';return;}
-  $('replyBtn').disabled=true;
-  try{ await req('',{method:'POST',body:{action:'reply',post_id:currentPost,body}}); $('replyBody').value=''; toast('回复成功'); openPost(currentPost); }
-  catch(e){ err.textContent=e.message; }
-  finally{ $('replyBtn').disabled=false; }
-}
-
-async function doDeletePost(id){
-  if(!confirm('确定删除这个帖子？')) return;
-  try{ await req('',{method:'POST',body:{action:'delete_post',id}}); toast('已删除'); goHome(); }
-  catch(e){ toast(e.message); }
-}
-async function doDeleteReply(id){
-  if(!confirm('确定删除这条回复？')) return;
-  try{ await req('',{method:'POST',body:{action:'delete_reply',id}}); toast('已删除'); openPost(currentPost); }
-  catch(e){ toast(e.message); }
-}
-
-function goHome(){ currentPost=null; $('detailView').classList.add('hidden'); $('listView').classList.remove('hidden'); renderHeader(); loadPosts(); }
-
-$('postBtn').onclick=createPost;
-$('replyBtn').onclick=createReply;
-$('back').onclick=goHome;
-$('home').onclick=goHome;
-let qTimer;
-$('qBox').oninput=e=>{clearTimeout(qTimer);qTimer=setTimeout(()=>{state.q=e.target.value.trim();loadPosts();},350);};
-$('sortBox').onchange=e=>{state.sort=e.target.value;loadPosts();};
-$('auPass').addEventListener('keydown',e=>{if(e.key==='Enter')doAuth();});
-$('auCap').addEventListener('keydown',e=>{if(e.key==='Enter')doAuth();});
-
-renderHeader();
-goHome();
+// 启动
+(async ()=>{ me = store.user; renderTop(); await loadBoards(); route(); })();
 </script>
 </body>
 </html>
