@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>刁钻注册 · 85 关（每关机制都不同）</title>
+<!-- 备用密钥（第 76 关会用到）：hunter2 -->
+<style>
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{margin:0; font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+       background:radial-gradient(1200px 600px at 50% -10%,#1b2233,#0b0e14 60%); color:#e8eaed; min-height:100vh;}
+  header{position:sticky; top:0; z-index:99; background:rgba(13,17,24,.94); backdrop-filter:blur(8px);
+         border-bottom:1px solid #232a38; padding:12px 16px 10px;}
+  .top{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;}
+  h1{font-size:14px; margin:0; letter-spacing:.4px; color:#cdd6e4; font-weight:600; white-space:nowrap;}
+  #levelNo{font-size:12px; color:#6f7c90; font-variant-numeric:tabular-nums;}
+  .tools{display:flex; gap:6px; flex-wrap:wrap;}
+  .tools button{background:#1c2434; color:#aab6c8; border:1px solid #2c3852; border-radius:8px;
+          padding:6px 10px; font-size:12px; cursor:pointer;}
+  .tools button:hover{background:#232d40; color:#e8eaed;}
+  .bar{height:6px; margin-top:9px; background:#212836; border-radius:99px; overflow:hidden;}
+  .bar>i{display:block; height:100%; width:0; border-radius:99px;
+         background:linear-gradient(90deg,#4f8cff,#a05cff 60%,#ff5ca8); transition:width .25s ease;}
+  #hintBox{display:none; margin-top:9px; padding:9px 12px; border-radius:9px; font-size:13px; line-height:1.6;
+           background:#1a2438; border:1px solid #2f4a7a; color:#9dc0ff;}
+  #hintBox.show{display:block;}
+  main{padding:24px 16px 110px; max-width:760px; margin:0 auto; min-height:60vh;}
+  .desc{color:#9aa6b8; font-size:15px; line-height:1.75; margin:0 0 20px;}
+  .row{display:flex; gap:12px; align-items:center; flex-wrap:wrap;}
+  .col{display:flex; flex-direction:column; gap:14px; align-items:flex-start;}
+  .btn{background:#4f8cff; color:#fff; border:none; padding:12px 24px; border-radius:11px;
+       font-size:16px; cursor:pointer; transition:background .15s, transform .05s; user-select:none;}
+  .btn:hover{background:#6ba0ff;}
+  .btn:active{transform:scale(.97);}
+  .btn.ghost{background:#222a3a; color:#cdd6e4; border:1px solid #303a4d;}
+  .btn.ghost:hover{background:#2b3548;}
+  .btn.on{background:#5cd08a;}
+  .note{color:#8b98ab; font-size:13.5px; line-height:1.6;}
+  .warn{color:#ffb454;} .ok{color:#5cd08a;} .err{color:#ff6b6b;}
+  input[type=text],input[type=password],input[type=number],select,textarea{
+       padding:11px 13px; border-radius:9px; border:1px solid #2a3346; background:#141b28;
+       color:#e8eaed; font-size:16px; outline:none; min-width:220px;}
+  input:focus,select:focus{border-color:#4f8cff;}
+  input[readonly]{opacity:.6;}
+  .box{border:2px dashed #33405a; border-radius:14px; padding:18px; background:#101725;}
+  .zone{width:150px; height:110px; border:2px dashed #4f8cff; border-radius:12px;
+        display:flex; align-items:center; justify-content:center; color:#4f8cff; font-size:12px;}
+  .chip{width:74px; height:40px; border-radius:9px; background:#4f8cff; color:#fff;
+        display:flex; align-items:center; justify-content:center; cursor:grab; user-select:none; font-size:14px;}
+  .card{width:74px; height:74px; border-radius:12px; background:#1b2436; border:1px solid #2c3852;
+        display:flex; align-items:center; justify-content:center; font-size:28px; cursor:pointer; user-select:none;}
+  .sw{width:66px; height:34px; border-radius:99px; background:#2a3346; position:relative; display:inline-block; cursor:pointer; transition:background .2s;}
+  .sw.on{background:#4f8cff;}
+  .sw>i{position:absolute; top:3px; left:3px; width:28px; height:28px; border-radius:50%; background:#fff; transition:left .2s; cursor:grab;}
+  .sw.on>i{left:35px;}
+  .grid{display:grid; gap:8px;}
+  footer{padding:22px 16px 60px; max-width:760px; margin:0 auto; color:#586274; font-size:12px; line-height:1.8;}
+  .toast{position:fixed; left:50%; bottom:88px; transform:translateX(-50%);
+         background:#1c2434; border:1px solid #2c3852; color:#e8eaed; padding:10px 16px; border-radius:11px;
+         font-size:13.5px; opacity:0; transition:opacity .25s, transform .25s; pointer-events:none; z-index:600; max-width:86vw;}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(-6px);}
+  #winOverlay{position:fixed; inset:0; z-index:700; background:rgba(5,8,14,.86);
+              display:flex; align-items:center; justify-content:center; padding:24px;}
+  #winBox{background:#161d2b; border:1px solid #2c3852; border-radius:18px; padding:28px; max-width:440px; text-align:center;}
+  #winBox h2{margin:0 0 14px; font-size:22px;}
+  #winBox p{color:#9aa6b8; font-size:14px; line-height:1.75; margin:6px 0;}
+  #winBox button{background:#4f8cff; color:#fff; border:none; border-radius:10px; padding:11px 22px;
+                 font-size:14px; cursor:pointer; margin-top:16px;}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <h1>刁钻注册 · 85 关（机制各不相同）</h1>
+    <span id="levelNo">第 1 关 / 共 85 关</span>
+  </div>
+  <div class="tools">
+    <button id="tHint">💡 提示</button>
+    <button id="tRetry">↻ 重来本关</button>
+    <button id="tSkip">🏳 认输跳过</button>
+  </div>
+  <div class="bar"><i id="bar"></i></div>
+  <div id="hintBox"></div>
+</header>
+
+<main id="stage"></main>
+
+<footer>
+  85 关，<b>每关的机制都不一样</b>，且都有解。<br>
+  解法藏得比较深，过不去可以用「💡 提示」或「🏳 认输跳过」。<br>
+  通关时会统计你真正手解了多少关。
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================ 框架 ============================ */
+const $ = s => document.querySelector(s);
+const T = $('#toast');
+let toastTimer = null;
+function toast(msg, ms=1900){
+  T.textContent = msg; T.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>T.classList.remove('show'), ms);
+}
+function h(tag, attrs = {}, ...kids){
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)){
+    if (v == null) continue;
+    if (k === 'class') e.className = v;
+    else if (k === 'html') e.innerHTML = v;
+    else if (k === 'text') e.textContent = v;
+    else if (k === 'style') e.style.cssText = v;
+    else if (k.startsWith('on') && typeof v === 'function') e.addEventListener(k.slice(2).toLowerCase(), v);
+    else e.setAttribute(k, v);
+  }
+  for (const c of kids.flat(Infinity)){
+    if (c == null || c === false) continue;
+    e.append(c.nodeType ? c : document.createTextNode(String(c)));
+  }
+  return e;
+}
+const B = (t, fn, cls='btn') => h('button', {class: cls, onclick: fn || (()=>{})}, t);
+const P = (t, cls='note') => h('p', {class: cls, html: t});
+const Row = (...k) => h('div', {class:'row'}, k);
+const Col = (...k) => h('div', {class:'col'}, k);
+const mkInput = (o={}) => h('input', Object.assign({type:'text'}, o));
+
+let disposers = [];
+function on(t, ev, fn, o){ t.addEventListener(ev, fn, o); disposers.push(()=>t.removeEventListener(ev, fn, o)); }
+function every(ms, fn){ const id = setInterval(fn, ms); disposers.push(()=>clearInterval(id)); return id; }
+function after(ms, fn){ const id = setTimeout(fn, ms); disposers.push(()=>clearTimeout(id)); return id; }
+function clearAll(){ for (const d of disposers){ try{ d(); }catch(e){} } disposers = []; }
+function makeFlee(btn, speed=170){
+  btn.style.position = 'relative'; btn.style.transition = 'transform .1s';
+  on(window, 'mousemove', e=>{
+    const q = btn.getBoundingClientRect();
+    const cx = q.left+q.width/2, cy = q.top+q.height/2;
+    if (Math.hypot(e.clientX-cx, e.clientY-cy) < 150){
+      const a = Math.atan2(cy-e.clientY, cx-e.clientX) + (Math.random()-0.5);
+      btn.style.transform = "translate(" + (Math.cos(a)*speed) + "px," + (Math.sin(a)*speed) + "px)";
+    }
+  });
+}
+function overlap(a, b){
+  const x = a.getBoundingClientRect(), y = b.getBoundingClientRect();
+  return !(x.right < y.left || x.left > y.right || x.bottom < y.top || x.top > y.bottom);
+}
+
+/* ============================ 85 关（机制各不相同） ============================ */
+const LEVELS = [
+
+/* 01 键盘激活逃跑按钮 */
+{ desc:'点击「继续」完成验证。（它有点怕你的鼠标）',
+  hint:'鼠标碰不到它，改用键盘：按 Tab 选中它，再按 Enter。手机上直接点即可。',
+  build(r,next){ const b = B('继续', next); makeFlee(b); r.append(Row(b)); }},
+
+/* 02 悬停接近→触底反弹 */
+{ desc:'按钮每被鼠标靠近一次缩小 12%；但缩到一半以下时会反过来变大。',
+  hint:'一直靠近它，等它开始变大（超过一半），趁它变大时点下去。',
+  build(r,next){
+    let s = 1, grow = false;
+    const b = B('继续', next); b.style.transition = 'transform .15s';
+    r.append(Row(b));
+    on(document,'mousemove', e=>{
+      const q = b.getBoundingClientRect();
+      if (Math.hypot(e.clientX-(q.left+q.width/2), e.clientY-(q.top+q.height/2)) < 130){
+        if (!grow){ s *= 0.88; if (s <= 0.5) grow = true; } else { s = Math.min(1, s*1.25); }
+        b.style.transform = "scale(" + s + ")";
+      }
+    });
+  }},
+
+/* 03 藏在正文里的行内按钮 */
+{ desc:'阅读下面这段话，然后继续。',
+  hint:'这段话里藏着一个可以点的词——点那个蓝色的词。',
+  build(r,next){
+    const b = h('span',{style:'color:#4f8cff;text-decoration:underline;cursor:pointer;'},'继续');
+    on(b,'click', next);
+    r.append(h('p',{style:'font-size:16px;line-height:2.2;color:#9aa6b8;'},
+      '至此，你已通过前两步校验。请', b, '阅读并同意本页面剩余的全部条款，随后系统将为你创建账户。'
+    ));
+  }},
+
+/* 04 按词序点击（洗牌但看词） */
+{ desc:'按顺序依次点击：我 → 是 → 人 → 类。',
+  hint:'点击后词语会重新洗牌，但判定看的是「词」不是「位置」——照着顺序点。',
+  build(r,next){
+    const words = ['我','是','人','类'], need = ['我','是','人','类'];
+    let step = 0; const wrap = Row();
+    const draw = ()=>{ wrap.innerHTML=''; words.slice().sort(()=>Math.random()-0.5).forEach(w=>{
+      wrap.append(B(w, ()=>{ if (w===need[step]){ step++; if(step===4){ next(); return; } } else { step=0; toast('顺序错了。'); } draw(); }, 'btn ghost'));
+    });};
+    draw(); r.append(wrap);
+  }},
+
+/* 05 勾选后限时点击 */
+{ desc:'勾选「我同意」，但它 1.5 秒后会自动取消。',
+  hint:'勾选后会立刻冒出「继续」按钮——1.5 秒内点它就赢了。',
+  build(r,next){
+    const cb = h('input',{type:'checkbox', style:'width:22px;height:22px;min-width:0;'});
+    const nb = B('继续', next); nb.style.display='none';
+    r.append(Row(cb,'我同意'), Row(nb));
+    on(cb,'change',()=>{ if (cb.checked){ nb.style.display='inline-block'; after(1500, ()=>{ cb.checked=false; nb.style.display='none'; }); } });
+  }},
+
+/* 06 输入被倒序 */
+{ desc:'输入框会把内容倒过来显示。请让框里最终显示「通过」。',
+  hint:'倒着打：输入「过通」，它会自己翻成「通过」。',
+  build(r,next){
+    const inp = mkInput({placeholder:'在这里输入…'}); const st = P('');
+    on(inp,'input',()=>{ const p = inp.value.length; inp.value = inp.value.split('').reverse().join(''); inp.setSelectionRange(p,p);
+      if (inp.value === '通过'){ st.className='note ok'; st.textContent='✓ 通过'; next(); } });
+    r.append(Col(inp, st));
+  }},
+
+/* 07 逐字输入被拦→改用粘贴 */
+{ desc:'在输入框里输入「通过」。',
+  hint:'逐字输入会被拦截，但「粘贴」不会——先复制这个词再贴进去。',
+  build(r,next){
+    const inp = mkInput({placeholder:'试试输入…'}); const st = P('');
+    on(inp,'beforeinput', e=>{ if (e.inputType === 'insertText'){ e.preventDefault(); st.className='note warn'; st.textContent='逐字输入被拦截。'; } });
+    on(inp,'input', ()=>{ if (inp.value.includes('通过')){ st.className='note ok'; st.textContent='✓'; next(); } });
+    r.append(Col(inp, st));
+  }},
+
+/* 08 滑块：鼠标弹回，键盘可行 */
+{ desc:'把滑块拖到最右边，但它一松手就弹回 0。',
+  hint:'别用鼠标拖。用 Tab 选中滑块，然后按「→」键。',
+  build(r,next){
+    const s = h('input',{type:'range',min:0,max:100,value:0,style:'width:320px;min-width:0;'});
+    on(s,'pointerup', ()=>{ s.value = 0; toast('弹回 0 了。'); });
+    on(s,'input', ()=>{ if (+s.value >= 100) next(); });
+    r.append(Col(s, P('（键盘也行）')));
+  }},
+
+/* 09 什么都不做，等 5 秒 */
+{ desc:'⚠ 请「不要」点击下方按钮。',
+  hint:'答案就在题面里：什么都别做，安静等 5 秒。',
+  build(r,next){
+    let t = 0; const st = P('保持不动… 0 / 5 秒');
+    const b = B('（别点我）', ()=>{ t = 0; st.textContent='保持不动… 0 / 5 秒'; toast('你不听话。'); });
+    r.append(Row(b), st);
+    every(1000, ()=>{ t++; st.textContent = "保持不动… " + t + " / 5 秒"; if (t >= 5) next(); });
+  }},
+
+/* 10 往下滚找真按钮 */
+{ desc:'点击按钮进入下一步。',
+  hint:'那个按钮是假的。把页面往下滚，底部藏着真正的「继续」。',
+  build(r,next){
+    let n = 0;
+    const fake = B('继续', ()=>{ n++; fake.textContent = "再点一次（" + n + "）"; });
+    r.append(Col(Row(fake), h('div',{style:'height:900px;'}), Row(B('✅ 继续（真的这个）', next))));
+  }},
+
+/* 11 按住恰好 3 秒 */
+{ desc:'按住按钮「满 3 秒」再松手（允许 3.00–3.20 秒）。',
+  hint:'盯着计时器，到 3.0 秒立刻松手。',
+  build(r,next){
+    const st = P('（按下开始计时）'); const b = B('按住我', ()=>{});
+    let t0 = 0, down = false;
+    on(b,'pointerdown', ()=>{ t0 = performance.now(); down = true; st.className='note warn'; st.textContent='计时中…'; });
+    every(50, ()=>{ if (down) st.textContent = '计时中… ' + ((performance.now()-t0)/1000).toFixed(2) + ' 秒'; });
+    on(window,'pointerup', ()=>{ if (!down) return; down = false; const d = performance.now()-t0;
+      if (d >= 3000 && d <= 3200) next(); else { st.className='note err'; st.textContent = '用了 ' + (d/1000).toFixed(2) + ' 秒 → 失败。'; } });
+    r.append(Col(Row(b), st));
+  }},
+
+/* 12 按住 4 秒且按钮抖动 */
+{ desc:'按住按钮 4 秒，期间不能松手。',
+  hint:'按住不放就行——它会轻微抖动，把手指/鼠标稳在按钮上。',
+  build(r,next){
+    let t = 0, down = false; const st = P('按住开始…'); const b = B('按住不放', ()=>{});
+    on(b,'pointerdown', ()=>{ down = true; t = 0; st.className='note warn'; });
+    every(100, ()=>{ if (down){ t += 0.1; st.textContent = '已坚持 ' + t.toFixed(1) + ' / 4.0 秒';
+      const j = (Math.random()-0.5)*10; b.style.transform = "translate(" + j + "px," + j + "px)"; if (t >= 4) next(); } });
+    on(window,'pointerup', ()=>{ if (down){ down=false; t=0; b.style.transform=''; st.className='note err'; st.textContent='松手了，重来。'; } });
+    r.append(Col(Row(b), st));
+  }},
+
+/* 13 空格被禁→用回车 */
+{ desc:'按下【空格键】继续。',
+  hint:'空格被禁用了，但「回车」没有。',
+  build(r,next){
+    on(window,'keydown', e=>{ if (e.code === 'Space'){ e.preventDefault(); toast('空格：已禁用。'); } else if (e.key === 'Enter') next(); });
+    r.append(P('（试试别的键）'));
+  }},
+
+/* 14 回车会清空→点提交 */
+{ desc:'在输入框输入内容，然后按【回车】提交。',
+  hint:'回车会清空输入框。改用鼠标点下面的「提交」按钮。',
+  build(r,next){
+    const inp = mkInput({placeholder:'输入点什么…'});
+    on(inp,'keydown', e=>{ if (e.key === 'Enter'){ inp.value=''; toast('回车：已清空。'); } });
+    r.append(Col(inp, B('提交', ()=>{ if (inp.value.trim()) next(); else toast('先输入内容。'); })));
+  }},
+
+/* 15 悬停暂停自动重置的进度 */
+{ desc:'等进度条加载满。',
+  hint:'它到 99% 就会重置。把鼠标停在进度条上，它就不重置了。',
+  build(r,next){
+    const i = h('i',{style:'display:block;height:100%;width:0;background:#4f8cff;border-radius:99px;'});
+    const bar = h('div',{style:'height:12px;width:320px;background:#212836;border-radius:99px;overflow:hidden;cursor:pointer;'}, i);
+    const st = P('0%'); let v = 0, paused = false;
+    on(bar,'mouseenter', ()=>{ paused = true; }); on(bar,'mouseleave', ()=>{ paused = false; });
+    every(90, ()=>{ v += 2; if (!paused && v >= 99) v = 0; if (v >= 100){ next(); return; }
+      i.style.width = v + '%'; st.textContent = Math.floor(v) + '%' + (paused ? '（已暂停重置）' : ''); });
+    r.append(Col(bar, st));
+  }},
+
+/* 16 点负数倒计时翻正 */
+{ desc:'等倒计时结束即可。',
+  hint:'倒计时是负的。点一下那个数字，它会翻成正数并跑完。',
+  build(r,next){
+    const st = h('div',{style:'font-size:52px;font-weight:700;color:#4f8cff;cursor:pointer;font-variant-numeric:tabular-nums;'}, '-1');
+    let n = -1, speed = 1;
+    on(st,'click', ()=>{ if (n < 0){ n = 3; st.style.color = '#5cd08a'; } });
+    every(1000, ()=>{ n -= speed; st.textContent = n.toFixed(0); if (n <= 0) next(); });
+    r.append(Col(st, P('倒计时：')));
+  }},
+
+/* 17 与背景同色的隐形按钮 */
+{ desc:'点击「继续」按钮。',
+  hint:'它和背景同色所以看不见。把鼠标在按钮区域附近移动，光标会变成手型。',
+  build(r,next){
+    const real = B('继续', next);
+    real.style.background = '#0f1420'; real.style.color = '#0f1420'; real.style.border = '1px solid #0f1420';
+    r.append(Row(real), P('（提示：它就在这儿，只是看不见）'));
+  }},
+
+/* 18 键盘可绕过互斥的复选框 */
+{ desc:'同时勾选 A 和 B。',
+  hint:'鼠标勾一个会取消另一个；用键盘就不会——Tab 到 A 按空格，再 Tab 到 B 按空格。',
+  build(r,next){
+    const a = h('input',{type:'checkbox', style:'width:22px;height:22px;min-width:0;'});
+    const b = h('input',{type:'checkbox', style:'width:22px;height:22px;min-width:0;'});
+    const chk = ()=>{ if (a.checked && b.checked) next(); };
+    on(a,'click', e=>{ if (e.detail > 0 && a.checked){ b.checked = false; toast('B 被取消了（鼠标）。'); } chk(); });
+    on(b,'click', e=>{ if (e.detail > 0 && b.checked){ a.checked = false; toast('A 被取消了（鼠标）。'); } chk(); });
+    r.append(Row(a,'A 选项'), Row(b,'B 选项'));
+  }},
+
+/* 19 方向键移动方块 */
+{ desc:'把方块移进虚线框内。',
+  hint:'鼠标拖时目标会躲；用键盘：Tab 选中方块，用方向键把它挪进框里。',
+  build(r,next){
+    const box = h('div',{class:'box', style:'height:300px; position:relative;'});
+    const zone = h('div',{class:'zone', style:'position:absolute; right:24px; top:30px;'}, '目标');
+    const chip = h('div',{class:'chip', tabindex:'0', style:'position:absolute; left:24px; top:200px; outline:none;'}, '拖我');
+    box.append(zone, chip); r.append(box);
+    const done = ()=>{ if (overlap(chip, zone)) next(); };
+    on(chip,'keydown', e=>{
+      const x = parseInt(chip.style.left), y = parseInt(chip.style.top);
+      if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){
+        e.preventDefault();
+        chip.style.left = (x + (e.key==='ArrowLeft'?-12:e.key==='ArrowRight'?12:0)) + 'px';
+        chip.style.top  = (y + (e.key==='ArrowUp'?-12:e.key==='ArrowDown'?12:0)) + 'px';
+        done();
+      }
+    });
+    let drag=false, ox=0, oy=0;
+    on(chip,'pointerdown', e=>{ drag=true; const q=chip.getBoundingClientRect(); ox=e.clientX-q.left; oy=e.clientY-q.top; });
+    on(document,'pointermove', e=>{ if (!drag) return; const bq = box.getBoundingClientRect();
+      chip.style.left = (e.clientX-bq.left-ox)+'px'; chip.style.top = (e.clientY-bq.top-oy)+'px';
+      const zq = zone.getBoundingClientRect(), cq = chip.getBoundingClientRect();
+      const dx = (zq.left+zq.width/2)-(cq.left+cq.width/2), dy = (zq.top+zq.height/2)-(cq.top+cq.height/2);
+      if (Math.hypot(dx,dy) < 160){ zone.style.left = (zq.left-bq.left-dx*0.6)+'px'; zone.style.top = (zq.top-bq.top-dy*0.6)+'px'; zone.style.right='auto'; } });
+    on(document,'pointerup', ()=>{ drag=false; done(); });
+  }},
+
+/* 20 修改「最大值」输入框 */
+{ desc:'把滑块拖到 100。',
+  hint:'最大值「99」本身是个输入框，把它改成 100 再拖。',
+  build(r,next){
+    const s = h('input',{type:'range',min:0,max:99,value:0,style:'width:300px;min-width:0;'});
+    const mx = h('input',{type:'number', value:99, style:'width:84px;min-width:0;'});
+    const st = P('当前：0');
+    on(mx,'input', ()=>{ s.max = mx.value; });
+    on(s,'input', ()=>{ st.textContent = '当前：' + s.value; if (+s.value >= 100) next(); });
+    r.append(Col(s, Row('最大值：', mx), st));
+  }},
+
+/* 21 双击解除只读 */
+{ desc:'在输入框里输入「人类」。',
+  hint:'双击输入框可以解除只读锁定，然后就能打字了。',
+  build(r,next){
+    const inp = mkInput({placeholder:'输入「人类」', readonly:''});
+    on(inp,'dblclick', ()=>{ inp.removeAttribute('readonly'); inp.focus(); toast('已解锁。'); });
+    on(inp,'input', ()=>{ if (inp.value.includes('人类')) next(); });
+    r.append(inp);
+  }},
+
+/* 22 拖拽转盘转满一圈 */
+{ desc:'转动这个旋钮：绕着圈拖满一整圈（360°）。',
+  hint:'按住蓝色圆点，绕着虚线圆环拖一整圈，中途不要反向。',
+  build(r,next){
+    const R = 70, cx = 110, cy = 110;
+    const wrap = h('div',{style:'position:relative;width:220px;height:220px;'});
+    const ring = h('div',{style:'position:absolute;left:'+(cx-R)+'px;top:'+(cy-R)+'px;width:'+(2*R)+'px;height:'+(2*R)+'px;border:3px dashed #33405a;border-radius:50%;'});
+    const knob = h('div',{style:'position:absolute;left:'+(cx-14)+'px;top:'+(cy-R-14)+'px;width:28px;height:28px;border-radius:50%;background:#4f8cff;cursor:grab;'});
+    wrap.append(ring, knob);
+    let drag=false, last=null, total=0, dir=0;
+    const ang = (e)=>{ const q = wrap.getBoundingClientRect(); return Math.atan2(e.clientY-(q.top+cy), e.clientX-(q.left+cx)); };
+    on(knob,'pointerdown', e=>{ drag=true; last=ang(e); total=0; dir=0; try{knob.setPointerCapture(e.pointerId);}catch(_){} });
+    on(knob,'pointermove', e=>{
+      if (!drag) return;
+      const a = ang(e); let d = a-last;
+      while (d > Math.PI) d -= 2*Math.PI;
+      while (d < -Math.PI) d += 2*Math.PI;
+      if (dir === 0 || Math.sign(d) === dir) total += Math.abs(d); else total = 0;
+      if (d !== 0) dir = Math.sign(d);
+      last = a;
+      knob.style.left = (cx + Math.cos(a)*R - 14) + 'px';
+      knob.style.top  = (cy + Math.sin(a)*R - 14) + 'px';
+      if (total*180/Math.PI >= 350) next();
+    });
+    on(knob,'pointerup', ()=>{ drag=false; });
+    r.append(wrap);
+  }},
+
+/* 23 π 只要求前 16 位 */
+{ desc:'精确输入圆周率 π 的完整小数位（不得省略）。',
+  hint:'π 是无限的，当然输不完——题面在骗你。其实只要前 16 位：3.141592653589793',
+  build(r,next){
+    const inp = mkInput({placeholder:'3.14159265358979…'});
+    on(inp,'input', ()=>{ if (inp.value.trim().startsWith('3.141592653589793')) next(); });
+    r.append(inp);
+  }},
+
+/* 24 屏幕数字键盘（物理 2 键被禁） */
+{ desc:'计算 1 + 1，并用屏幕上的数字键盘输入答案。',
+  hint:'物理键盘的「2」被禁用了——用下面屏幕上的数字键点出「2」。',
+  build(r,next){
+    const st = h('div',{style:'font-size:30px;min-height:40px;'}, '_');
+    let v = '';
+    const pad = h('div',{class:'grid', style:'grid-template-columns:repeat(3,54px);width:max-content;'});
+    ['1','2','3','4','5','6','7','8','9','0'].forEach(n=>pad.append(B(n, ()=>{ v += n; st.textContent = v; if (v === '2') next(); }, 'btn ghost')));
+    on(window,'keydown', e=>{ if (e.key === '2'){ e.preventDefault(); toast('物理「2」键已禁用。'); } });
+    r.append(Col(P('答案：'), st, pad));
+  }},
+
+/* 25 拼图：先选块再点空位 */
+{ desc:'把缺的那块拼图补上。',
+  hint:'先点一下右边的拼图块选中它，再点棋盘上的空位。',
+  build(r,next){
+    const g = h('div',{class:'grid', style:'grid-template-columns:repeat(3,64px);width:max-content;'});
+    let empty = 4, sel = false;
+    for (let i=0;i<9;i++){
+      const c = h('div',{style:'width:64px;height:64px;border-radius:8px;border:1px solid #2c3852;display:flex;align-items:center;justify-content:center;font-size:22px;background:'+(i===4?'#0b0e14':'#1b2436')+';'}, i===4?'':'🧩');
+      on(c,'click', ()=>{ if (i===empty && sel){ c.textContent='🧩'; c.style.background='#1b2436'; next(); } });
+      g.append(c);
+    }
+    const piece = h('div',{style:'width:64px;height:64px;border-radius:8px;border:1px solid #4f8cff;display:flex;align-items:center;justify-content:center;font-size:22px;background:#16233a;cursor:pointer;'},'🧩');
+    on(piece,'click', ()=>{ sel = true; piece.style.background='#4f8cff'; toast('已选中，去点棋盘上的空格。'); });
+    r.append(Row(g, h('div',{style:'width:30px;'}), piece));
+  }},
+
+/* 26 长按 2 秒 */
+{ desc:'翻开卡片找出图案。',
+  hint:'单击只翻背面。长按卡片（按住 2 秒）才能看到图案。',
+  build(r,next){
+    const c = h('div',{class:'card'}, '？'); let tid = null;
+    on(c,'click', ()=>{ toast('还是背面。'); });
+    on(c,'pointerdown', ()=>{ tid = after(2000, ()=>{ c.textContent = '🎉'; c.style.background='#16233a'; next(); }); });
+    on(c,'pointerup', ()=>{ if (tid) clearTimeout(tid); });
+    on(c,'pointerleave', ()=>{ if (tid) clearTimeout(tid); });
+    r.append(Col(c, P('（按住别松手）')));
+  }},
+
+/* 27 转盘：转到指定格再停 */
+{ desc:'转盘转到「通过」那一格时，点「停」。',
+  hint:'点一次开始转，等它转到「通过」时立刻再点一次停下。',
+  build(r,next){
+    const labels = ['再来一次','谢谢参与','差一点','通过','再接再厉'];
+    const st = h('div',{style:'font-size:20px;padding:28px;border-radius:14px;background:#141b28;border:1px solid #2c3852;min-width:240px;text-align:center;cursor:pointer;'}, '🎡 点击开始');
+    let cur = '', spinning = false;
+    const tick = ()=>{ cur = labels[Math.floor(Math.random()*labels.length)]; st.textContent = '🎯 ' + cur; };
+    on(st,'click', ()=>{ if (!spinning){ spinning = true; every(100, tick); tick(); } else { if (cur === '通过') next(); else toast('停在「'+cur+'」——继续转。'); } });
+    r.append(Col(st, P('（点一次开始，再点一次停）')));
+  }},
+
+/* 28 双击 */
+{ desc:'双击按钮。（单击会被视为作弊）',
+  hint:'两次点击间隔小于 300ms 就是双击，正常双击即可。',
+  build(r,next){
+    const b = B('双击我', ()=>{});
+    on(b,'dblclick', ()=>next());
+    on(b,'click', ()=>toast('这是单击，不是双击。'));
+    r.append(Row(b));
+  }},
+
+/* 29 右键点击 */
+{ desc:'用【鼠标右键】点击按钮继续。',
+  hint:'右键菜单被禁用，但「右键按下」被监听了——直接右键点它。',
+  build(r,next){
+    const b = B('右键点我', ()=>toast('左键无效。'));
+    on(b,'mousedown', e=>{ if (e.button === 2) next(); });
+    on(document,'contextmenu', e=>e.preventDefault());
+    r.append(Row(b));
+  }},
+
+/* 30 中键点击 */
+{ desc:'用【鼠标中键（滚轮）】点击按钮。',
+  hint:'把滚轮按下去点它（中键 = button 1）。',
+  build(r,next){
+    const b = B('中键点我', ()=>toast('左键无效。'));
+    on(b,'auxclick', e=>{ if (e.button === 1) next(); });
+    on(b,'mousedown', e=>{ if (e.button === 1) next(); });
+    r.append(Row(b));
+  }},
+
+/* 31 非字母键 */
+{ desc:'按下【任意键】继续。',
+  hint:'字母和数字键会被拒绝。按一个「不是字母数字」的键，比如方向键或 Shift。',
+  build(r,next){
+    on(window,'keydown', e=>{
+      if (e.key.length === 1 && /[a-zA-Z0-9]/.test(e.key)){ toast('字母/数字被拒绝。'); return; }
+      if (['Shift','Control','Alt','Tab','Escape'].includes(e.key) || e.key.startsWith('Arrow')) next();
+    });
+    r.append(P('（试试非字母数字键）'));
+  }},
+
+/* 32 假要求：只要 1 个字符 */
+{ desc:'请输入密码：「任意一个汉字」。',
+  hint:'题面在吓你。规则其实只是「长度 ≥ 1」——随便打一个字。',
+  build(r,next){
+    const inp = h('input',{type:'password', placeholder:'随便输入一个字'});
+    on(inp,'input', ()=>{ if (inp.value.length >= 1) next(); });
+    r.append(inp);
+  }},
+
+/* 33 强密码强度条 */
+{ desc:'设置密码：至少 12 位，且包含大写、小写、数字、符号各至少一个。',
+  hint:'照着要求打一个够强的密码就行，例如 Abc123!@#xyz。',
+  build(r,next){
+    const inp = h('input',{type:'password', placeholder:'输入强密码…'});
+    const bar = h('i',{style:'display:block;height:100%;width:0;background:#5cd08a;border-radius:99px;transition:width .2s;'});
+    const bg = h('div',{style:'height:10px;width:300px;background:#212836;border-radius:99px;overflow:hidden;'}, bar);
+    const st = P('强度：0%');
+    on(inp,'input', ()=>{
+      const v = inp.value; let s = 0;
+      if (v.length >= 12) s += 25; if (/[a-z]/.test(v)) s += 25; if (/[A-Z]/.test(v)) s += 25;
+      if (/\d/.test(v)) s += 12.5; if (/[^A-Za-z0-9]/.test(v)) s += 12.5;
+      bar.style.width = s + '%'; st.textContent = '强度：' + Math.round(s) + '%';
+      if (s >= 100) next();
+    });
+    r.append(Col(inp, bg, st));
+  }},
+
+/* 34 确认密码（假报错） */
+{ desc:'确认密码：两次输入必须相同。',
+  hint:'过程中那些「不能相同」的红字全是假的。真正规则就是「两次相同」。',
+  build(r,next){
+    const p1 = h('input',{type:'password', placeholder:'密码'});
+    const p2 = h('input',{type:'password', placeholder:'确认密码'});
+    const st = P('等待输入…');
+    on(p2,'input', ()=>{
+      if (!p2.value) return;
+      if (p1.value === p2.value){ st.className='note ok'; st.textContent='✓ 一致，通过。'; next(); }
+      else { st.className='note err'; st.textContent='❌ 两次输入不能相同。（假的）'; }
+    });
+    r.append(Col(p1, p2, st));
+  }},
+
+/* 35 点标签全选 */
+{ desc:'阅读并同意协议（共 100 条细则）。',
+  hint:'不用一条条勾——点主复选框右边那行「我已阅读并同意全部」的文字就能全选。',
+  build(r,next){
+    const g = h('div',{class:'grid', style:'grid-template-columns:repeat(10,24px);gap:6px;'});
+    const parent = h('input',{type:'checkbox', style:'width:22px;height:22px;min-width:0;pointer-events:none;'});
+    const label = h('span',{style:'cursor:pointer;'},'我已阅读并同意全部 100 条细则');
+    for (let i=0;i<100;i++) g.append(h('input',{type:'checkbox', style:'width:20px;height:20px;min-width:0;pointer-events:none;'}));
+    on(label,'click', ()=>{ [...g.children].forEach(c=>c.checked=true); parent.checked=true; next(); });
+    r.append(h('div',{style:'max-height:200px;overflow:auto;padding:10px;border:1px solid #2c3852;border-radius:10px;'}, g), Row(parent, label));
+  }},
+
+/* 36 反向滚轮滚到底 */
+{ desc:'滚动到协议底部，然后点「同意」。',
+  hint:'滚轮方向被反转了：往上滚，内容才会往下走。',
+  build(r,next){
+    const txt = h('div',{style:'height:200px;overflow:auto;border:1px solid #2c3852;border-radius:10px;padding:14px;line-height:1.9;color:#9aa6b8;'});
+    txt.innerHTML = Array.from({length:60},(_,i)=>"第 " + (i+1) + " 条：用户承诺放弃一切通过本页面的权利。").join('<br>');
+    const c = B('同意', next); c.style.display='none';
+    on(txt,'wheel', e=>{ e.preventDefault(); txt.scrollTop -= e.deltaY;
+      if (txt.scrollTop + txt.clientHeight >= txt.scrollHeight - 4) c.style.display='inline-block'; }, {passive:false});
+    r.append(Col(txt, c));
+  }},
+
+/* 37 长按右键 2 秒 */
+{ desc:'按住鼠标【右键】不放 2 秒。',
+  hint:'右键菜单会被禁用，但「按住右键 2 秒」会触发通过。',
+  build(r,next){
+    const b = B('按住右键', ()=>{});
+    const st = P('（按住右键不放）');
+    let tid = null, t0 = 0;
+    on(b,'mousedown', e=>{ if (e.button === 2){ t0 = Date.now(); tid = after(2000, ()=>next()); } });
+    every(100, ()=>{ if (t0) st.textContent = '已按住 ' + ((Date.now()-t0)/1000).toFixed(1) + ' 秒'; });
+    on(window,'mouseup', ()=>{ if (tid) clearTimeout(tid); t0 = 0; });
+    on(document,'contextmenu', e=>e.preventDefault());
+    r.append(Col(Row(b), st));
+  }},
+
+/* 38 颜色代码手填 */
+{ desc:'选择颜色：透明黑 (#00000000)。',
+  hint:'颜色选择器没有透明度。点它右边那个文本框，手动输入 00000000。',
+  build(r,next){
+    const c = h('input',{type:'color', value:'#000000', style:'width:70px;height:44px;padding:0;border:none;background:none;'});
+    const t = mkInput({placeholder:'#00000000', style:'min-width:160px;'});
+    on(t,'input', ()=>{ if (t.value.trim().toLowerCase().replace(/^#/,'') === '00000000') next(); });
+    r.append(Row(c, t));
+  }},
+
+/* 39 拖动开关的圆点 */
+{ desc:'打开这个开关。',
+  hint:'点它没用——用鼠标把圆点「拖」到右边。',
+  build(r,next){
+    const knob = h('i',{style:'cursor:grab;'});
+    const sw = h('div',{class:'sw'}, knob);
+    let drag = false, sx = 0, moved = false;
+    on(knob,'pointerdown', e=>{ drag = true; sx = e.clientX; moved = false; try{knob.setPointerCapture(e.pointerId);}catch(_){} });
+    on(knob,'pointermove', e=>{ if (!drag) return; if (Math.abs(e.clientX - sx) > 20){ moved = true; sw.classList.add('on'); } });
+    on(knob,'pointerup', ()=>{ if (drag && moved) next(); drag = false; });
+    on(sw,'click', e=>{ if (e.target === sw) toast('直接点没用，试着拖动圆点。'); });
+    r.append(sw);
+  }},
+
+/* 40 用 Tab 失焦（鼠标会清空） */
+{ desc:'填写昵称，然后让输入框失去焦点以校验。',
+  hint:'用鼠标点别处会清空。改用键盘：输入完按「Tab」把焦点移走。',
+  build(r,next){
+    const inp = mkInput({placeholder:'昵称…'});
+    let mouseBlur = false;
+    on(document,'mousedown', e=>{ if (e.target !== inp) mouseBlur = true; });
+    on(inp,'blur', ()=>{ if (mouseBlur){ inp.value=''; mouseBlur=false; toast('点击外部 → 已清空。'); } else if (inp.value.trim()){ next(); } });
+    r.append(Col(inp, P('（鼠标点击 vs 键盘 Tab，结果不一样）')));
+  }},
+
+/* 41 切标签页满 3 秒 */
+{ desc:'切换到浏览器其他标签页，停留 3 秒后返回。',
+  hint:'别急着回来：离开满 3 秒再切回来就通过了。',
+  build(r,next){
+    const st = P('状态：等待离开…'); let hiddenAt = 0;
+    on(document,'visibilitychange', ()=>{
+      if (document.hidden){ hiddenAt = Date.now(); st.className='note warn'; st.textContent='已离开，计时开始…'; }
+      else { const d = Date.now()-hiddenAt; if (d >= 3000) next(); else { st.className='note err'; st.textContent='只离开 ' + (d/1000).toFixed(1) + ' 秒。'; } }
+    });
+    r.append(st);
+  }},
+
+/* 42 摇一摇（左右拖动图标） */
+{ desc:'摇一摇手机（或用鼠标左右快速拖动下面这部手机）。',
+  hint:'左右往返快速拖动手机图标 5 次（方向反转算 1 次）。',
+  build(r,next){
+    const ph = h('div',{style:'font-size:64px;cursor:grab;user-select:none;'}, '📱');
+    let drag=false, lastX=0, dir=0, flips=0;
+    on(ph,'pointerdown', e=>{ drag=true; lastX=e.clientX; try{ph.setPointerCapture(e.pointerId);}catch(_){} });
+    on(ph,'pointermove', e=>{ if (!drag) return; const dx = e.clientX-lastX; lastX = e.clientX; const d = Math.sign(dx);
+      if (d !== 0 && dir !== 0 && d !== dir){ flips++; if (flips >= 5) next(); } if (d !== 0) dir = d; });
+    on(ph,'pointerup', ()=>{ drag=false; });
+    r.append(Col(ph, P('左右晃它')));
+  }},
+
+/* 43 麦克风其实是文字框 */
+{ desc:'对着麦克风朗读：我发誓我不是机器人。',
+  hint:'麦克风会被拒。直接在这个框里随便输个字再提交即可（它没有真的在听）。',
+  build(r,next){
+    const st = P(''); const inp = mkInput({placeholder:'其实这里是文字输入…'});
+    on(inp,'input', ()=>{ if (inp.value.length >= 1) next(); });
+    r.append(Col(B('开始录音', ()=>{ st.className='note err'; st.textContent='麦克风不可用——试试下面的输入框。'; }), st, inp));
+  }},
+
+/* 44 键盘 0 键加速计数 */
+{ desc:'让计数正好达到 1,000,000。',
+  hint:'一次点一个太慢。按键盘上的「0」键，一次加 10 万，按 10 下。',
+  build(r,next){
+    let n = 0;
+    const st = h('div',{style:'font-size:26px;font-variant-numeric:tabular-nums;'}, '0');
+    on(window,'keydown', e=>{ if (e.key === '0'){ n += 100000; st.textContent = n.toLocaleString(); if (n >= 1e6) next(); } });
+    r.append(Col(st, Row(B('+1', ()=>{ n++; st.textContent=n.toLocaleString(); if (n>=1e6) next(); })), P('（键盘上有更快的方法）')));
+  }},
+
+/* 45 反向联动滑块拖到 100 */
+{ desc:'让左侧滑块到达 100，同时右侧保持 0。',
+  hint:'两个滑块是反向联动的：把左边的拖到最右，右边自然就是 0。',
+  build(r,next){
+    const a = h('input',{type:'range',min:0,max:100,value:50,style:'width:300px;min-width:0;'});
+    const b = h('input',{type:'range',min:0,max:100,value:50,style:'width:300px;min-width:0;'});
+    const st = P('左：50 ｜ 右：50');
+    const chk = ()=>{ st.textContent = '左：'+a.value+' ｜ 右：'+b.value; if (+a.value===100 && +b.value===0) next(); };
+    on(a,'input', ()=>{ b.value = 100-a.value; chk(); });
+    on(b,'input', ()=>{ a.value = 100-b.value; chk(); });
+    r.append(Col(a, b, st));
+  }},
+
+/* 46 拖走挡路的假复选框 */
+{ desc:'勾选「我同意」。',
+  hint:'上面那个方块是假的，用鼠标把它「拖走」，再点下面真正的复选框。',
+  build(r,next){
+    const real = h('input',{type:'checkbox', style:'width:22px;height:22px;min-width:0;position:absolute;left:0;top:4px;'});
+    const decoy = h('div',{style:'width:22px;height:22px;min-width:0;position:absolute;left:0;top:4px;background:#2a3346;border:1px solid #303a4d;border-radius:4px;cursor:grab;z-index:5;'});
+    const wrap = h('div',{style:'position:relative;padding-left:34px;height:34px;'}, real, decoy, h('span',{style:'position:absolute;left:34px;top:6px;'},'我同意'));
+    let drag=false, ox=0, oy=0;
+    on(decoy,'pointerdown', e=>{ drag=true; const q=decoy.getBoundingClientRect(); ox=e.clientX-q.left; oy=e.clientY-q.top; try{decoy.setPointerCapture(e.pointerId);}catch(_){} });
+    on(decoy,'pointermove', e=>{ if (!drag) return; const wq=wrap.getBoundingClientRect(); const nx=e.clientX-wq.left-ox, ny=e.clientY-wq.top-oy;
+      decoy.style.left=nx+'px'; decoy.style.top=ny+'px'; if (Math.hypot(nx, ny) > 130) drag=false; });
+    on(decoy,'pointerup', ()=>{ drag=false; });
+    on(real,'click', ()=>{ if (real.checked) next(); });
+    r.append(wrap);
+  }},
+
+/* 47 连点墙 3 次打碎 */
+{ desc:'按钮被一堵墙挡住了，想办法过去。',
+  hint:'墙是纸糊的——连点它 3 次就会碎掉。',
+  build(r,next){
+    let hp = 3;
+    const b = B('继续', next); b.style.position='absolute'; b.style.left='30px'; b.style.top='60px';
+    const wall = h('div',{style:'position:absolute;left:0;top:40px;width:300px;height:90px;background:#232a38;border:1px solid #303a4d;border-radius:12px;z-index:10;display:flex;align-items:center;justify-content:center;color:#6f7c90;cursor:pointer;user-select:none;'},'🧱 承重墙（HP 3）');
+    on(wall,'click', ()=>{ hp--; if (hp > 0) wall.textContent = '🧱 承重墙（HP '+hp+'）'; else { wall.remove(); toast('墙碎了！'); } });
+    r.append(h('div',{style:'position:relative;height:170px;'}, b, wall));
+  }},
+
+/* 48 键盘 K 键即钥匙 */
+{ desc:'找到隐藏的钥匙，用它解锁。',
+  hint:'钥匙不在页面上，它就是键盘上的「K」键。',
+  build(r,next){
+    on(window,'keydown', e=>{ if (e.key.toLowerCase() === 'k'){ toast('🔑 钥匙！'); next(); } });
+    r.append(Col(h('div',{style:'font-size:40px;'}, '🔒'), P('（钥匙是一种感性的东西）')));
+  }},
+
+/* 49 迷宫：走出下边界 */
+{ desc:'用方向键操控小人走出迷宫。',
+  hint:'出口在网格的下边界之外——走到最下面一排，再继续按「↓」。',
+  build(r,next){
+    const W = 7, H = 6;
+    const maze = [
+      '#######',
+      '#.....#',
+      '#.###.#',
+      '#.#...#',
+      '#...#.#',
+      '#.....#'
+    ];
+    const grid = h('div',{class:'grid', style:'grid-template-columns:repeat('+W+',34px);width:max-content;'});
+    let px = 1, py = 1; const cells = [];
+    for (let y=0;y<H;y++) for (let x=0;x<W;x++){
+      const ch = maze[y][x];
+      const c = h('div',{style:'width:34px;height:34px;border:1px solid #1a2230;display:flex;align-items:center;justify-content:center;background:'+(ch==='#'?'#232a38':'#0f1420')+';'});
+      cells.push({c,x,y,wall:ch==='#'}); grid.append(c);
+    }
+    const draw = ()=>{ cells.forEach(o=>{ if (!o.wall) o.c.textContent = (o.x===px && o.y===py) ? '🧍' : ''; }); };
+    draw();
+    on(window,'keydown', e=>{
+      const dx = e.key==='ArrowLeft'?-1:e.key==='ArrowRight'?1:0;
+      const dy = e.key==='ArrowUp'?-1:e.key==='ArrowDown'?1:0;
+      if (!dx && !dy) return;
+      e.preventDefault();
+      const nx = px+dx, ny = py+dy;
+      if (nx < 0 || nx >= W || ny < 0 || ny >= H){ if (ny === H) next(); return; }
+      const t = cells.find(o=>o.x===nx && o.y===ny);
+      if (t && !t.wall){ px=nx; py=ny; draw(); }
+    });
+    r.append(Col(grid, P('（走到最下面一排，再按「↓」走出边界）')));
+  }},
+
+/* 50 关掉不断变大的文字 */
+{ desc:'关掉这段不断变大的文字，然后点「确认」。',
+  hint:'文字的右上角有一个小小的红色 ×。先点它，再点「确认」。',
+  build(r,next){
+    const t = h('div',{style:'position:relative;display:inline-block;font-size:18px;color:#9aa6b8;padding:12px;border:1px solid #2c3852;border-radius:10px;'}, '这是一段会不断变大的文字。');
+    const x = h('span',{style:'position:absolute;right:-9px;top:-9px;width:22px;height:22px;border-radius:50%;background:#ff6b6b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;'},'×');
+    t.append(x);
+    const b = B('确认', ()=>{ if (closed) next(); else toast('先关掉那段文字。'); }); b.style.display='none';
+    let closed = false;
+    every(600, ()=>{ if (!closed) t.style.fontSize = (parseFloat(getComputedStyle(t).fontSize)*1.35)+'px'; });
+    on(x,'click', ()=>{ closed = true; t.remove(); b.style.display='inline-block'; });
+    r.append(Col(t, b));
+  }},
+
+/* 51 盲点缩小的按钮 */
+{ desc:'读完这段话并点「确认」。',
+  hint:'按钮会跟着字一起缩到很小。记住它的位置，盲点下去。',
+  build(r,next){
+    const t = h('div',{style:'font-size:40px;color:#4f8cff;transition:font-size .4s;'}, '重要文字');
+    const b = B('确认', next);
+    b.dataset.s = 1;
+    every(600, ()=>{
+      t.style.fontSize = Math.max(0, parseFloat(getComputedStyle(t).fontSize)*0.6) + 'px';
+      b.dataset.s = Math.max(0.25, parseFloat(b.dataset.s)*0.6);
+      b.style.transform = 'scale(' + b.dataset.s + ')';
+    });
+    r.append(Col(t, b));
+  }},
+
+/* 52 和弦：按住解锁再点继续 */
+{ desc:'「继续」被锁住了，需要先解锁。',
+  hint:'用一只手按住「解锁」不放，另一只手点「继续」。',
+  build(r,next){
+    let unlocked = false;
+    const unl = B('🔓 解锁（按住）', ()=>{});
+    const gob = B('继续', ()=>{ if (unlocked) next(); else toast('还没解锁。'); });
+    on(unl,'pointerdown', ()=>{ unlocked = true; unl.classList.add('on'); });
+    on(window,'pointerup', ()=>{ unlocked = false; unl.classList.remove('on'); });
+    r.append(Row(unl, gob));
+  }},
+
+/* 53 镜像：点真的那个 */
+{ desc:'点击「继续」。',
+  hint:'界面被镜像了，左右是反的。点「看起来在右边」的那个「继续」。',
+  build(r,next){
+    const decoy = B('继续', ()=>toast('这个是假的。'), 'btn ghost');
+    const real = B('继续', next);
+    const wrap = Row(real, decoy);
+    wrap.style.transform = 'scaleX(-1)';
+    r.append(wrap, P('（镜像之后，哪一个才是真的？）'));
+  }},
+
+/* 54 ROT13 */
+{ desc:'请解密并输入明文： Uryyb',
+  hint:'这是 ROT13：每个字母挪 13 位。U→H, r→e, y→l, y→l, b→o，答案是 Hello。',
+  build(r,next){
+    const inp = mkInput({placeholder:'输入明文…'});
+    on(inp,'input', ()=>{ if (inp.value.trim().toLowerCase() === 'hello') next(); });
+    r.append(inp);
+  }},
+
+/* 55 记住第一次的验证码 */
+{ desc:'记住第一次出现的验证码，然后提交它。',
+  hint:'题目每 3 秒刷新，但只认「第一次」出现的那道题的答案。',
+  build(r,next){
+    const st = h('div',{style:'font-size:22px;letter-spacing:1px;'});
+    const inp = mkInput({placeholder:'输入最初那个答案'});
+    let first = null;
+    const gen = ()=>{ const a=Math.floor(Math.random()*20+2), b=Math.floor(Math.random()*20+2); if (first===null) first=a*b; st.textContent = a + ' × ' + b + ' = ?'; };
+    gen(); every(3000, gen);
+    on(inp,'input', ()=>{ if (first!==null && parseInt(inp.value,10) === first) next(); });
+    r.append(Col(st, inp));
+  }},
+
+/* 56 连点圆圈 3 次自动缩小归位 */
+{ desc:'把圆圈放进方框里。',
+  hint:'圆圈太大——连点它 3 次，它会自动缩小并飞进方框。',
+  build(r,next){
+    const box = h('div',{style:'position:relative;height:230px;'});
+    const target = h('div',{style:'position:absolute;left:230px;top:70px;width:80px;height:80px;border:2px dashed #4f8cff;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#4f8cff;font-size:11px;'},'方框');
+    const circle = h('div',{style:'position:absolute;left:20px;top:100px;width:160px;height:160px;border-radius:50%;background:#4f8cff;opacity:.85;cursor:pointer;transition:all .25s;'});
+    let n = 0;
+    on(circle,'click', ()=>{
+      n++;
+      if (n < 3){ circle.style.transform = 'scale(' + (1-n*0.18) + ')'; toast('缩小中… ' + n + '/3'); }
+      else { circle.style.left='230px'; circle.style.top='70px'; circle.style.width='80px'; circle.style.height='80px'; after(300, ()=>next()); }
+    });
+    box.append(target, circle); r.append(box);
+  }},
+
+/* 57 清空输入框 */
+{ desc:'清空输入框里的所有内容。',
+  hint:'把里面的字全删掉就行（全选后按 Backspace，或一直按退格）。',
+  build(r,next){
+    const inp = mkInput({value:'这一段不该存在的文字必须被完全清空，否则你无法继续。'});
+    on(inp,'input', ()=>{ if (inp.value.length === 0) next(); });
+    r.append(inp);
+  }},
+
+/* 58 输入从最前面插入 */
+{ desc:'输入手机号：13800138000。',
+  hint:'它会把你输入的内容从最前面插入（相当于倒序显示）。倒着打：00083100831。',
+  build(r,next){
+    const inp = mkInput({placeholder:'11 位手机号'});
+    on(inp,'beforeinput', e=>{ if (e.inputType === 'insertText'){ e.preventDefault(); inp.value = (e.data||'') + inp.value; if (inp.value === '13800138000') next(); } });
+    r.append(Col(inp, P('（内容会从最前面插入）')));
+  }},
+
+/* 59 五键在 0.3 秒内按下 */
+{ desc:'在同一瞬间按下 A、S、D、F、J 五个键。',
+  hint:'「同一瞬间」放宽到 0.3 秒——快速滚一遍这五个键就行。',
+  build(r,next){
+    const need = new Set(['a','s','d','f','j']);
+    const got = new Set(); let timer = null;
+    on(window,'keydown', e=>{
+      const k = e.key.toLowerCase(); if (!need.has(k)) return;
+      got.add(k); if (got.size === need.size) next();
+      if (timer) clearTimeout(timer); timer = setTimeout(()=>got.clear(), 300);
+    });
+    r.append(P('滚一遍 a s d f j'));
+  }},
+
+/* 60 A→Z 顺序且不能停顿 */
+{ desc:'按顺序依次按下 A→B→C→…→Z。',
+  hint:'中途不能按错、也不能停顿超过 1 秒。快一点敲完 26 个字母。',
+  build(r,next){
+    let i = 0, tid = null;
+    const st = P('进度：0 / 26（下一个：A）');
+    const show = ()=>{ st.textContent = '进度：' + i + ' / 26（下一个：' + (i<26?String.fromCharCode(65+i):'—') + '）'; };
+    on(window,'keydown', e=>{
+      const k = e.key.toUpperCase(); if (k.length !== 1 || !/[A-Z]/.test(k)) return;
+      if (k === String.fromCharCode(65+i)) i++; else i = 0;
+      show(); if (i >= 26) next();
+      if (tid) clearTimeout(tid);
+      tid = setTimeout(()=>{ i = 0; show(); toast('停顿太久，重置。'); }, 1000);
+    });
+    r.append(st);
+  }},
+
+/* 61 滚动滚轮填充进度条 */
+{ desc:'用滚轮把进度条填满。',
+  hint:'点击没用——把鼠标放在进度条上，向上滚滚轮。',
+  build(r,next){
+    const i = h('i',{style:'display:block;height:100%;width:0;background:#4f8cff;border-radius:99px;'});
+    const bar = h('div',{style:'height:16px;width:320px;background:#212836;border-radius:99px;overflow:hidden;'}, i);
+    const st = P('0%');
+    let v = 0;
+    on(bar,'wheel', e=>{ e.preventDefault(); v = Math.max(0, Math.min(100, v - Math.sign(e.deltaY)*6));
+      i.style.width = v + '%'; st.textContent = Math.round(v) + '%'; if (v >= 100) next(); }, {passive:false});
+    r.append(Col(bar, st, P('（鼠标放上去，向上滚）')));
+  }},
+
+/* 62 拖文件进投放区 */
+{ desc:'上传身份证正面照片。',
+  hint:'把任意文件拖进下面这个框；手机上双击这个框也能选文件。',
+  build(r,next){
+    const z = h('div',{class:'box', style:'width:280px;height:170px;display:flex;align-items:center;justify-content:center;color:#6f7c90;'},'把文件拖到这里（或双击）');
+    on(z,'dragover', e=>e.preventDefault());
+    on(z,'drop', e=>{ e.preventDefault(); next(); });
+    on(z,'dblclick', ()=>{ const fi = h('input',{type:'file'}); fi.onchange = ()=>next(); fi.click(); });
+    r.append(z);
+  }},
+
+/* 63 关掉摄像头预览 */
+{ desc:'完成活体检测。',
+  hint:'摄像头是坏的。点预览框右上角的红色「×」关掉它。',
+  build(r,next){
+    const v = h('div',{style:'position:relative;width:280px;height:180px;background:#000;border:1px solid #2c3852;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#4a5568;'}, '📷 无人像');
+    const x = h('span',{style:'position:absolute;right:8px;top:8px;width:26px;height:26px;border-radius:50%;background:#ff6b6b;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;'},'×');
+    on(x,'click', next);
+    v.append(x); r.append(v);
+  }},
+
+/* 64 二维码中心的按钮 */
+{ desc:'扫描下方二维码继续。',
+  hint:'扫出来还是这个页面。二维码正中间藏着一个按钮，点它。',
+  build(r,next){
+    const wrap = h('div',{style:'position:relative;width:180px;height:180px;background:#fff;border-radius:12px;display:grid;grid-template-columns:repeat(17,1fr);overflow:hidden;'});
+    for (let i=0;i<289;i++) wrap.append(h('div',{style:'background:'+(Math.random()>0.5?'#000':'#fff')}));
+    const dot = h('div',{style:'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:8px;background:#fff;border:3px solid #4f8cff;cursor:pointer;'});
+    on(dot,'click', next);
+    wrap.append(dot); r.append(wrap);
+  }},
+
+/* 65 验证码要倒着读 */
+{ desc:'输入短信验证码（提示：倒着看）。',
+  hint:'屏幕上的验证码是反着显示的：「000111」，真正的码是「111000」。',
+  build(r,next){
+    const shown = '000111';
+    const st = h('div',{style:'font-size:26px;letter-spacing:8px;color:#4f8cff;'}, shown);
+    const inp = mkInput({placeholder:'输入真正的验证码', maxlength:'6', style:'max-width:180px;letter-spacing:4px;'});
+    on(inp,'input', ()=>{ if (inp.value === shown.split('').reverse().join('')) next(); });
+    r.append(Col(st, inp));
+  }},
+
+/* 66 从字块中点出验证码 */
+{ desc:'从下方字块里按顺序点出验证码：K 7 M 3',
+  hint:'按顺序点击字块 K → 7 → M → 3。',
+  build(r,next){
+    const code = ['K','7','M','3'];
+    const pool = ['K','9','7','Q','M','2','3','X','A','5'].sort(()=>Math.random()-0.5);
+    let i = 0;
+    const wrap = h('div',{class:'grid', style:'grid-template-columns:repeat(5,54px);width:max-content;'});
+    pool.forEach(c=> wrap.append(B(c, ()=>{ if (c === code[i]){ i++; toast('对：'+c); if (i === code.length) next(); } else { i = 0; toast('错了，重来。'); } }, 'btn ghost')));
+    r.append(Col(h('div',{style:'font-size:20px;letter-spacing:6px;color:#4f8cff;'}, code.join(' ')), wrap));
+  }},
+
+/* 67 输入被旋转 180° 的词 */
+{ desc:'把左边那个词复制到右边输入框。',
+  hint:'文字被旋转了 180°，复制也被禁用。但它其实写的是「通过」——照着打进去。',
+  build(r,next){
+    const src = h('div',{style:'font-size:24px;color:#e8eaed;padding:14px;border:1px solid #2c3852;border-radius:10px;user-select:none;transform:rotate(180deg);display:inline-block;'},'通过');
+    const inp = mkInput({placeholder:'在这里输入'});
+    on(document,'copy', e=>{ e.preventDefault(); toast('复制已禁用。'); });
+    on(inp,'input', ()=>{ if (inp.value.includes('通过')) next(); });
+    r.append(Col(src, inp));
+  }},
+
+/* 68 按住 Shift 拖动到精确坐标 */
+{ desc:'把方块精确拖到 x = 137。',
+  hint:'它会吸附到 7 的倍数，137 不是。按住 Shift 拖动就不会吸附了。',
+  build(r,next){
+    const track = h('div',{style:'position:relative;height:56px;background:#141b28;border-radius:10px;'});
+    const chip = h('div',{style:'position:absolute;left:0;top:6px;width:44px;height:44px;border-radius:8px;background:#4f8cff;cursor:grab;'});
+    const st = P('当前 x = 0'); track.append(chip);
+    let drag = false;
+    on(chip,'pointerdown', (e)=>{ drag = true; try{chip.setPointerCapture(e.pointerId);}catch(_){} });
+    on(document,'pointermove', e=>{ if (!drag) return; const q = track.getBoundingClientRect();
+      let x = Math.max(0, Math.min(276, e.clientX - q.left - 22));
+      if (!e.shiftKey) x = Math.round(x/7)*7; else x = Math.round(x);
+      chip.style.left = x + 'px'; st.textContent = '当前 x = ' + x + (e.shiftKey ? '（未吸附）' : '');
+      if (x === 137) next(); });
+    on(document,'pointerup', ()=>{ drag = false; });
+    r.append(Col(track, st));
+  }},
+
+/* 69 在停顿瞬间点击移动目标 */
+{ desc:'点击移动中的绿点。',
+  hint:'它每帧都在动，但会在两端各停 0.25 秒——趁它停下时点。',
+  build(r,next){
+    const box = h('div',{style:'position:relative;height:220px;background:#101725;border:1px solid #2c3852;border-radius:12px;overflow:hidden;'});
+    const t = h('div',{style:'position:absolute;width:34px;height:34px;border-radius:50%;background:#5cd08a;top:90px;'});
+    box.append(t);
+    let x = 10, vx = 5, pause = 0;
+    const loop = ()=>{ if (pause > 0) pause--; else { x += vx; if (x < 0 || x > box.clientWidth-34){ vx *= -1; x = Math.max(0, Math.min(box.clientWidth-34, x)); pause = 15; } } t.style.left = x+'px'; requestAnimationFrame(loop); };
+    loop();
+    on(t,'click', ()=>next());
+    r.append(box);
+  }},
+
+/* 70 下拉会重置→用文本框 */
+{ desc:'从下拉菜单里选择「中国」。',
+  hint:'每次选都会重置。直接在上面那个文本框里输入「中国」。',
+  build(r,next){
+    const inp = mkInput({placeholder:'在这里输入「中国」'});
+    const sel = h('select');
+    Array.from({length:99},(_,i)=> i===57 ? '中国' : '地区-'+i).forEach(n=>sel.append(h('option',{value:n},n)));
+    on(sel,'change', ()=>{ sel.value='地区-0'; toast('下拉框已重置。'); });
+    on(inp,'input', ()=>{ if (inp.value.includes('中国')) next(); });
+    r.append(Col(inp, sel));
+  }},
+
+/* 71 手动输入昨天日期 */
+{ desc:'输入你「昨天」的日期。',
+  hint:'日历只给明天。用手动输入框，填昨天的日期即可。',
+  build(r,next){
+    const d = new Date(Date.now()-864e5).toISOString().slice(0,10);
+    const cal = h('input',{type:'date'});
+    const tom = new Date(Date.now()+864e5).toISOString().slice(0,10);
+    cal.min = tom; cal.max = tom; cal.value = tom;
+    const inp = mkInput({placeholder:'YYYY-MM-DD'});
+    on(inp,'input', ()=>{ if (inp.value.trim() === d) next(); });
+    r.append(Col(cal, Row('或手动输入：', inp)));
+  }},
+
+/* 72 1.5 秒内点弹窗 */
+{ desc:'在弹窗关闭前点「确认」。',
+  hint:'它 1.5 秒后自动关。手快一点，或者直接按回车。',
+  build(r,next){
+    const pop = h('div',{style:'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:150;'});
+    const dlg = h('div',{style:'background:#161d2b;border:1px solid #2c3852;border-radius:14px;padding:24px;text-align:center;'}, h('div',{style:'margin-bottom:16px;'},'请及时确认'), B('确认', ()=>next()));
+    pop.append(dlg); document.body.append(pop); disposers.push(()=>pop.remove());
+    after(1500, ()=>{ toast('弹窗已关闭。'); pop.remove(); });
+    on(window,'keydown', e=>{ if (e.key === 'Enter') next(); });
+  }},
+
+/* 73 先冻结联动再设状态 */
+{ desc:'同时满足：A 关闭、B 打开、C 关闭。',
+  hint:'直接调会互相牵连。先打开「🔒 冻结联动」，再随便调。',
+  build(r,next){
+    let a=true, b=false, c=true, frozen=false;
+    const wrap = Col();
+    const render = ()=>{
+      wrap.innerHTML = '';
+      const mk = (label, get, set)=>{
+        const sw = h('div',{class:'sw' + (get()?' on':''), style:'vertical-align:middle;'}, h('i'));
+        on(sw,'click', ()=>{ set(!get()); render(); });
+        return Row(sw, ' ' + label);
+      };
+      wrap.append(
+        Row(B(frozen ? '🔒 已冻结联动' : '🔓 冻结联动', ()=>{ frozen = !frozen; render(); }, 'btn ghost')),
+        mk('A（需关闭）', ()=>a, v=>{ a = v; if (!frozen) b = !b; }),
+        mk('B（需打开）', ()=>b, v=>{ b = v; if (!frozen) c = !c; }),
+        mk('C（需关闭）', ()=>c, v=>{ c = v; if (!frozen) a = !a; })
+      );
+      if (!a && b && !c) next();
+    };
+    render(); r.append(wrap);
+  }},
+
+/* 74 判定区在按钮之外 */
+{ desc:'点击屏幕中央那颗按钮。',
+  hint:'可点击区域不在按钮上。把鼠标向右移，会看到虚线轮廓，点那里。',
+  build(r,next){
+    const wrap = h('div',{style:'position:relative;height:200px;background:#101725;border-radius:12px;'});
+    const vis = h('div',{style:'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#4f8cff;color:#fff;padding:12px 24px;border-radius:11px;'},'继续');
+    const hit = h('div',{style:'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) translateX(200px);width:120px;height:46px;cursor:pointer;border-radius:11px;'});
+    on(hit,'mouseenter', ()=>{ hit.style.outline = '2px dashed #5cd08a'; toast('找到判定区了，点它！'); });
+    on(hit,'click', next);
+    wrap.append(vis, hit); r.append(wrap);
+  }},
+
+/* 75 左右交替点击 20 次 */
+{ desc:'左右交替点击两个按钮，共 20 次（不能连点同一个）。',
+  hint:'左 → 右 → 左 → 右… 交替 20 次。',
+  build(r,next){
+    let last = null, n = 0;
+    const st = P('进度：0 / 20');
+    const mk = (id, label)=>B(label, ()=>{ if (last === id){ toast('不能连点同一个。'); return; } last = id; n++; st.textContent = '进度：'+n+' / 20'; if (n >= 20) next(); });
+    r.append(Col(Row(mk('L','左'), mk('R','右')), st));
+  }},
+
+/* 76 密钥在源码注释里 */
+{ desc:'输入解密密钥以解锁注册表。',
+  hint:'密钥写在页面源码的注释里。查看源代码，找「备用密钥」。',
+  build(r,next){
+    const inp = mkInput({placeholder:'密钥'});
+    on(inp,'input', ()=>{ if (inp.value.trim() === 'hunter2') next(); });
+    r.append(Col(h('div',{style:'font-family:monospace;color:#9aa6b8;'}, 'cipher = 8f3a1c…'), inp, P('（右键 → 查看网页源代码）')));
+  }},
+
+/* 77 连点「我是机器人」3 次 */
+{ desc:'请证明你是人类。',
+  hint:'只有「我是机器人」这一个按钮。连点它 3 次，它就改口了。',
+  build(r,next){
+    let n = 0; const st = P('');
+    const b = B('我是机器人', ()=>{ n++; if (n >= 3){ st.className='note ok'; st.textContent='系统：你显然不是机器人。通过。'; next(); } else { st.textContent = '已选「我是机器人」'+n+' 次…'; } }, 'btn ghost');
+    r.append(Col(b, st));
+  }},
+
+/* 78 点击永不结束的转圈 */
+{ desc:'正在校验身份，请稍候…',
+  hint:'它永远不会转完。点一下那个转圈圈。',
+  build(r,next){
+    const s = document.createElement('style'); s.textContent = '@keyframes spin{to{transform:rotate(360deg)}}'; document.head.append(s);
+    disposers.push(()=>s.remove());
+    const sp = h('div',{style:'width:46px;height:46px;border:4px solid #2c3852;border-top-color:#4f8cff;border-radius:50%;animation:spin 1s linear infinite;cursor:pointer;'});
+    on(sp,'click', next);
+    r.append(Row(sp, ' 校验中…'));
+  }},
+
+/* 79 先钉住会消失的按钮 */
+{ desc:'点击「注册成功」。',
+  hint:'它会消失。先点左边那个 📌 图钉把它钉住，再点它。',
+  build(r,next){
+    const b = B('✅ 注册成功', next);
+    const pin = h('span',{style:'font-size:22px;cursor:pointer;user-select:none;'},'📌');
+    let pinned = false;
+    on(pin,'click', ()=>{ pinned = true; pin.style.filter = 'drop-shadow(0 0 6px #5cd08a)'; toast('已钉住。'); });
+    on(document,'mousemove', e=>{ if (pinned) return; const q = b.getBoundingClientRect();
+      b.style.opacity = Math.hypot(e.clientX-(q.left+q.width/2), e.clientY-(q.top+q.height/2)) < 90 ? '0' : '1'; });
+    r.append(Row(pin, b));
+  }},
+
+/* 80 先退出登录再提交 */
+{ desc:'提交注册信息。',
+  hint:'左边显示你「已登录」——先点「退出登录」，再提交。',
+  build(r,next){
+    let logged = true;
+    const badge = h('div',{style:'font-size:13px;color:#9aa6b8;'}, '👤 已登录：admin');
+    const out = B('退出登录', ()=>{ logged = false; badge.textContent = '👤 未登录'; out.disabled = true; out.style.opacity = '.5'; }, 'btn ghost');
+    const sub = B('提交', ()=>{ if (!logged) next(); else toast('请先退出登录。'); });
+    r.append(Col(Row(badge, out), Row(sub)));
+  }},
+
+/* 81 连点陷阱 3 次直到它放弃 */
+{ desc:'点击「跳过」继续（它会把你送回去）。',
+  hint:'点它 3 次，它会自己放弃并放你过去。',
+  build(r,next){
+    let n = 0; const st = P('');
+    const b = B('跳过', ()=>{ n++; if (n < 3){ st.textContent = '它把你送回去了…（' + n + '/3）'; } else { st.textContent = '它放弃了。通过。'; next(); } });
+    r.append(Col(b, st));
+  }},
+
+/* 82 别点崩溃按钮，等 5 秒 */
+{ desc:'🎉 恭喜注册成功！点击「查看我的账户」。',
+  hint:'点它会报错。别点，安静等 5 秒，会出现真正的「继续」。',
+  build(r,next){
+    const b = B('查看我的账户', ()=>{ toast('错误：Cannot read properties of undefined (reading "human")'); });
+    const st = P('（等待系统恢复…）');
+    r.append(Col(h('div',{style:'font-size:20px;'},'🎊 注册完成 🎊'), b, st));
+    let t = 0, shown = false;
+    every(1000, ()=>{ t++; if (shown) return; if (t >= 5){ shown = true; st.innerHTML = ''; st.append(B('继续 →', next)); } else { st.textContent = '（等待系统恢复… ' + (5-t) + ' 秒）'; } });
+  }},
+
+/* 83 回忆第 1 关按钮文字 */
+{ desc:'请输入第 1 关那个按钮上的文字。',
+  hint:'第 1 关的按钮写的是「继续」。',
+  build(r,next){
+    const inp = mkInput({placeholder:'回忆一下…'});
+    on(inp,'input', ()=>{ if (inp.value.trim() === '继续') next(); });
+    r.append(inp);
+  }},
+
+/* 84 三组配对消除 */
+{ desc:'把三组相同的图案配对消除。',
+  hint:'点两张一样的牌即可消除，全部消完就通过。',
+  build(r,next){
+    const items = ['🍎','🍎','🍇','🍇','⭐','⭐'].sort(()=>Math.random()-0.5);
+    let first = null, matched = 0;
+    const wrap = Row();
+    items.forEach(sym=>{
+      const c = h('div',{class:'card'}, '？');
+      on(c,'click', ()=>{
+        if (c.dataset.done || c === first) return;
+        if (!first){ first = c; c.textContent = sym; return; }
+        c.textContent = sym;
+        if (first.textContent === sym){ first.dataset.done = 1; c.dataset.done = 1; matched++; first = null; if (matched === 3) next(); }
+        else { const f = first; after(500, ()=>{ f.textContent = '？'; c.textContent = '？'; }); first = null; }
+      });
+      wrap.append(c);
+    });
+    r.append(wrap);
+  }},
+
+/* 85 连点「完成注册」10 次 */
+{ desc:'这是最后一关。点击「完成注册」结束整个流程。',
+  hint:'点一次它会说又生成了 85 关。别停，连点 10 次。',
+  build(r,next){
+    let n = 0; const st = P('');
+    const b = B('完成注册', ()=>{ n++; st.textContent = n < 10 ? ('它又生成了 85 关…（' + n + '/10）') : ''; if (n >= 10) next(); });
+    r.append(Col(b, st, P('（你确定要点吗）')));
+  }},
+
+];
+
+/* ============================ 引擎 ============================ */
+let idx = 0, advanced = false, solved = 0, skippedCount = 0, hintCount = 0;
+
+function go(n){
+  clearAll();
+  if (n >= LEVELS.length){ idx = LEVELS.length - 1; finish(); return; }
+  idx = Math.max(0, n);
+  render();
+}
+function next(){ if (advanced) return; advanced = true; solved++; go(idx + 1); }
+
+function render(){
+  const lv = LEVELS[idx];
+  $('#levelNo').textContent = '第 ' + (idx+1) + ' 关 / 共 ' + LEVELS.length + ' 关';
+  $('#bar').style.width = (idx / LEVELS.length * 100).toFixed(2) + '%';
+  const hb = $('#hintBox'); hb.textContent = ''; hb.classList.remove('show');
+  const stage = $('#stage');
+  stage.innerHTML = '';
+  stage.append(h('p', {class:'desc', html: lv.desc || ''}));
+  advanced = false;
+  try { lv.build(stage, next); }
+  catch (e){ stage.append(P('本关渲染出错：' + (e && e.message))); }
+  window.scrollTo(0, 0);
+}
+
+function finish(){
+  const w = document.createElement('div');
+  w.id = 'winOverlay';
+  w.innerHTML = '<div id="winBox"><h2>🏁 你通关了</h2>'
+    + '<p>手解关卡：<b style="color:#5cd08a">' + solved + ' / ' + LEVELS.length + '</b></p>'
+    + '<p>认输跳过：<b style="color:#ffb454">' + skippedCount + '</b> 关</p>'
+    + '<p>查看提示：<b>' + hintCount + '</b> 次</p>'
+    + (skippedCount === 0 && hintCount === 0 ? '<p>（既没跳过也没看提示——你确定你是人类？）</p>' : '')
+    + '<button id="winClose">关闭</button></div>';
+  document.body.append(w);
+  w.querySelector('#winClose').onclick = ()=>{ w.remove(); go(0); };
+}
+
+$('#tHint').onclick = ()=>{ hintCount++; const lv = LEVELS[idx]; const hb = $('#hintBox');
+  hb.textContent = '💡 ' + (lv.hint || '（本关暂无提示）'); hb.classList.add('show'); };
+$('#tRetry').onclick = ()=>go(idx);
+$('#tSkip').onclick  = ()=>{ skippedCount++; go(idx + 1); };
+
+render();
+</script>
+</body>
+</html>
