@@ -1,0 +1,93 @@
+/* ===== 全站统一主题（覆盖式） ===== */
+:root{
+  --g1:#4f8cff; --g2:#35d0ba;
+  --ink:#22314a; --mut:#8896a8; --line:#e9eef6;
+}
+html{color-scheme:light}
+body{background:#f4f7fc!important;color:#22314a}
+/* 背景光斑 */
+body::before,body::after{
+  content:"";position:fixed;border-radius:50%;filter:blur(70px);
+  opacity:.42;pointer-events:none;z-index:0;
+}
+body::before{width:320px;height:320px;background:#8fc2ff;top:-110px;left:-110px}
+body::after{width:300px;height:300px;background:#8ef0d8;bottom:-130px;right:-100px}
+/* 内容层置顶 */
+.wrap,.container,.panel,.card{position:relative;z-index:1}
+
+/* ---- 头部渐变 ---- */
+.top,.topbar{
+  background:linear-gradient(120deg,var(--g1),var(--g2))!important;
+  border-bottom:0!important;
+  box-shadow:0 6px 20px rgba(79,140,255,.22);
+}
+.top a,.topbar a,.topbar .userbox a,.topbar .logo{color:#f2f8ff!important}
+.topbar .search input{background:#ffffff26!important;color:#fff!important;border-radius:16px!important}
+.topbar .search input::placeholder{color:#eaf3ffaa!important}
+.topbar .search button{background:#ffffff2e!important;color:#fff!important;border-radius:16px!important}
+
+/* ---- 卡片 ---- */
+.panel,.card{
+  border:0!important;
+  border-radius:18px!important;
+  box-shadow:0 4px 20px rgba(34,49,74,.06)!important;
+  overflow:hidden;
+}
+.panel-hd,.card-hd{
+  background:#fff!important;
+  border-bottom:1px solid var(--line)!important;
+  color:#22314a!important;
+}
+.panel-bd{padding:14px}
+
+/* ---- 按钮 ---- */
+button,.btn{font-family:inherit;transition:transform .12s ease,filter .15s ease}
+button:active,.btn:active{transform:scale(.96)}
+.btn{
+  background:linear-gradient(120deg,var(--g1),var(--g2))!important;
+  border:0!important;color:#fff!important;font-weight:700;
+  border-radius:20px!important;padding:8px 18px!important;
+}
+.btn.gray{background:#eef2f8!important;color:#5b6b7c!important}
+.btn.danger{background:#fff0f3!important;color:#e0245e!important;border:1px solid #ffd3de!important}
+.btn.green{background:linear-gradient(120deg,#34d399,#22c55e)!important;color:#fff!important}
+.btn.small,.btn.mini{padding:4px 12px!important;font-size:12px!important}
+
+/* ---- 表单 ---- */
+input,textarea,select{
+  border-radius:12px!important;
+  border:1px solid var(--line)!important;
+  background:#fbfcfe!important;
+}
+input:focus,textarea:focus,select:focus{
+  border-color:#bcd6ff!important;
+  box-shadow:0 0 0 3px rgba(79,140,255,.13)!important;
+}
+
+/* ---- 导航 ---- */
+.nav{background:transparent!important;border-bottom:0!important}
+.nav .inner{background:transparent}
+.nav a{
+  border-bottom:0!important;border-radius:16px!important;
+  margin:6px 2px;padding:7px 15px!important;color:#5b6b7c!important;
+}
+.nav a.on{background:#eaf2ff!important;color:#2f6fe0!important;font-weight:800}
+.nav a:hover{background:#f0f5fd!important;text-decoration:none}
+
+/* ---- 表格 ---- */
+th{background:#f7f9fc!important;color:#8a95a1!important;font-weight:600;border-bottom:1px solid var(--line)!important}
+td{border-bottom:1px solid #f4f7fb!important}
+tr:hover td{background:#f8fbff!important}
+
+/* ---- 楼层 / 帖子 ---- */
+.post{border:0!important;border-radius:18px!important;box-shadow:0 4px 20px rgba(34,49,74,.06)!important}
+.post .pu{background:#f8fbfe!important;border-right:1px solid var(--line)!important}
+.post .pc .hd{border-bottom:1px dashed var(--line)!important}
+
+/* ---- 杂项 ---- */
+a{color:#2f6fe0}
+.crumb{color:var(--mut)}
+.tag{background:#eaf2ff!important;color:#2f6fe0!important;border:0!important;border-radius:10px!important}
+.modal .box,.modal .card{border-radius:20px!important;box-shadow:0 20px 60px rgba(20,40,80,.22)!important}
+.drawer{border-radius:20px 0 0 20px}
+.toast{border-radius:22px!important}
