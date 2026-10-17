@@ -63,6 +63,11 @@ input{border:1px solid #cfd8e3;border-radius:3px;padding:6px 9px;font-size:13px;
   </div>
 
   <div class="panel">
+    <div class="panel-hd">举报处理 <span class="r">AI 会自动判定并隐藏违规内容</span></div>
+    <div class="panel-bd"><div id="repBox" class="center">加载中…</div></div>
+  </div>
+
+  <div class="panel">
     <div class="panel-hd">按 IP 统计注册</div>
     <div class="panel-bd"><div id="regBox" class="center">加载中…</div></div>
   </div>
@@ -124,6 +129,27 @@ async function load(){
       document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>delUser(b.dataset.del, b.dataset.name));
     }catch(e){ $('userBox').innerHTML = `<div class="center">${esc(e.message)}</div>`; }
 
+    try{
+      const rj = await api('?action=reports');
+      $('repBox').innerHTML = rj.reports.length ? `<table>
+        <thead><tr><th>时间</th><th>类型</th><th>内容</th><th>举报理由</th><th>AI 判定</th><th>状态</th><th></th></tr></thead><tbody>
+        ${rj.reports.map(r=>`<tr>
+          <td class="muted">${fmt(r.created_at)}</td>
+          <td>${esc(r.target_type==='post'?'主题':'回复')}</td>
+          <td style="max-width:240px">${esc(((r.target&&r.target.title)||(r.target&&r.target.body)||'（内容已删除）').slice(0,60))}
+            ${r.target&&r.target.is_hidden?'<span style="color:#c0392b">[已隐藏]</span>':''}</td>
+          <td class="muted">${esc((r.report_type||'')+' '+(r.reason||''))}</td>
+          <td class="muted">${esc(r.ai_verdict||'-')}</td>
+          <td>${esc(r.status)}</td>
+          <td style="white-space:nowrap">
+            <button class="btn red" data-ract="hide" data-rid="${r.id}">隐藏</button>
+            <button class="btn" data-ract="restore" data-rid="${r.id}">恢复</button>
+            <button class="btn" data-ract="dismiss" data-rid="${r.id}">忽略</button>
+          </td>
+        </tr>`).join('')}</tbody></table>` : '<div class="center">暂无举报</div>';
+      document.querySelectorAll('[data-ract]').forEach(b=>b.onclick=()=>reportAct(b.dataset.rid,b.dataset.ract));
+    }catch(e){ $('repBox').innerHTML = `<div class="center">${esc(e.message)}</div>`; }
+
     $('regBox').innerHTML = j.regStats.length ? `<table>
       <thead><tr><th>IP</th><th>注册次数</th><th>设备</th><th>最近</th><th></th></tr></thead><tbody>
       ${j.regStats.map(r=>`<tr>
@@ -159,6 +185,11 @@ async function load(){
     box.innerHTML=`<div class="center">${esc(e.message)}<br><br>需要管理员权限，请先在论坛登录管理员账号。</div>`;
     $('blkBox').innerHTML=''; $('visBox').innerHTML='';
   }
+}
+
+async function reportAct(id,act){
+  try{ await api('',{method:'POST',body:{action:'report_action',id,act}}); toast('已处理'); load(); }
+  catch(e){ toast(e.message); }
 }
 
 async function setAdmin(id,value){

@@ -357,6 +357,7 @@ async function thread(id, q){
         ${p.user&&p.user.signature?`<div class="sig">签名：${esc(p.user.signature)}</div>`:''}
         <div class="acts">
           <a href="javascript:;" class="quoteBtn" data-floor="1">引用</a>
+          <a href="javascript:;" class="reportBtn" data-type="post" data-id="${p.id}">举报</a>
           ${p.canEdit?`<a href="javascript:;" id="editPostBtn">编辑</a>`:''}
           ${p.canDelete?`<a href="javascript:;" id="delPostBtn">删除</a>`:''}
           <a href="javascript:;" id="likeBtn">❤ 点赞 ${p.likes||0}${p.liked?'（已赞）':''}</a>
@@ -372,6 +373,7 @@ async function thread(id, q){
         ${esc(r.body)}
         <div class="acts">
           <a href="javascript:;" class="quoteBtn" data-floor="${r.floor}" data-id="${r.id}" data-author="${esc(r.author)}">引用</a>
+          <a href="javascript:;" class="reportBtn" data-type="reply" data-id="${r.id}">举报</a>
           ${r.canDelete?`<a href="javascript:;" class="delReply" data-id="${r.id}">删除</a>`:''}
         </div>
       </div>
@@ -408,6 +410,7 @@ async function thread(id, q){
   if($('stickyBtn')) $('stickyBtn').onclick = async ()=>{ try{ await req('',{method:'POST',body:{action:'mod_post',id:p.id,field:'sticky',value:!p.is_sticky}}); toast('已更新'); route(); }catch(e){toast(e.message);} };
   if($('featBtn')) $('featBtn').onclick = async ()=>{ try{ await req('',{method:'POST',body:{action:'mod_post',id:p.id,field:'feature',value:!p.is_featured}}); toast('已更新'); route(); }catch(e){toast(e.message);} };
   document.querySelectorAll('.delReply').forEach(a=>a.onclick=async()=>{ if(!confirm('删除该回复？'))return; try{ await req('',{method:'POST',body:{action:'delete_reply',id:a.dataset.id}}); toast('已删除'); route(); }catch(e){toast(e.message);} });
+  document.querySelectorAll('.reportBtn').forEach(a=>a.onclick=(e)=>{ e.stopPropagation(); doReport(a.dataset.type, a.dataset.id); });
   document.querySelectorAll('.quoteBtn').forEach(a=>a.onclick=()=>{
     if(!me) return openAuth('login');
     const f=a.dataset.floor;
@@ -424,6 +427,17 @@ async function thread(id, q){
     catch(err){ e.textContent=err.message; $('rpSubmit').disabled=false; }
   };
 }
+async function doReport(type, id){
+  if(!me){ toast('请先登录'); return openAuth('login'); }
+  const reason = prompt('请填写举报理由（如：广告、辱骂、违法内容）');
+  if(reason===null) return;
+  try{
+    const j = await req('',{method:'POST',body:{action:'report',target_type:type,target_id:id,reason:reason||''}});
+    toast(j.hidden ? '已提交，AI 判定违规，内容已隐藏' : '已提交举报，等待处理');
+    if(j.hidden) setTimeout(()=>route(), 600);
+  }catch(e){ toast(e.message); }
+}
+
 function userCell(u, fallback){
   const name = u?u.username:fallback;
   const av = u&&u.avatar ? `<img class="av" src="${esc(u.avatar)}">` : `<img class="av">`;
