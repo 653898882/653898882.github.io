@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>隐私说明</title>
+<style>
+:root{color-scheme:light}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",Arial,sans-serif;background:#eef1f5;color:#333;font-size:14px;line-height:1.8}
+.top{background:#2b6cb0;color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.top b{font-size:16px}
+.top a{color:#dbe9f7;margin-left:auto;font-size:13px}
+.wrap{max-width:820px;margin:12px auto;padding:0 10px 50px}
+.panel{background:#fff;border:1px solid #cfd8e3;border-radius:5px;padding:20px 22px}
+h1{font-size:20px;margin-bottom:6px;color:#2b6cb0}
+h2{font-size:15px;margin:20px 0 8px;padding-left:8px;border-left:3px solid #2b6cb0}
+p,li{font-size:14px;color:#3a4654}
+ul{padding-left:22px;margin:6px 0}
+.meta{color:#8a95a1;font-size:12px;margin-bottom:14px}
+table{width:100%;border-collapse:collapse;margin:8px 0}
+th,td{border:1px solid #e1e8f0;padding:7px 9px;font-size:13px;text-align:left}
+th{background:#f5f8fb;color:#666;font-weight:normal}
+a{color:#1a66b3}
+.note{background:#f5f8fb;border:1px solid #e1e8f0;border-radius:4px;padding:10px 12px;margin:10px 0;font-size:13px;color:#4a5666}
+</style>
+</head>
+<body>
+<div class="top"><b>🔒 隐私说明</b><a href="./">← 返回论坛</a></div>
+<div class="wrap">
+<div class="panel">
+  <h1>隐私说明与用户须知</h1>
+  <div class="meta">最后更新：2026-10-17</div>
+
+  <p>本站是一个个人搭建的交流论坛。为了让你了解我们如何处理你的信息，特作如下说明。使用本站即表示你已知悉本说明。</p>
+
+  <h2>一、我们收集哪些信息</h2>
+  <table>
+    <tr><th>类别</th><th>具体内容</th><th>收集时机</th></tr>
+    <tr><td>账号信息</td><td>用户名、密码（<b>仅保存 PBKDF2-SHA256 加盐哈希，不保存明文</b>）、头像、签名、性别</td><td>注册 / 使用功能时</td></tr>
+    <tr><td>网络信息</td><td>IP 地址、User-Agent、<b>设备型号</b>（从 UA 解析，如 SM-G991B）</td><td>注册、登录、访问页面时</td></tr>
+    <tr><td>访问记录</td><td>访问的页面路径、来源页、访问时间、登录用户（未登录记为游客）</td><td>浏览页面时</td></tr>
+    <tr><td>风控记录</td><td>同 IP 注册次数、请求频率、黑名单状态</td><td>注册与请求时</td></tr>
+    <tr><td>AI 用量</td><td>每日调用次数（<b>不保存你的对话内容</b>）</td><td>使用 AI 小智时</td></tr>
+  </table>
+
+  <h2>二、我们为什么收集</h2>
+  <ul>
+    <li>账号登录与身份识别</li>
+    <li><b>安全风控</b>：防止恶意批量注册、刷接口、暴力破解密码</li>
+    <li>站点访问统计与故障排查</li>
+  </ul>
+
+  <h2>三、谁可以看到</h2>
+  <ul>
+    <li>普通用户<b>看不到</b>任何人的 IP、设备与访问记录</li>
+    <li>仅<b>站点管理员</b>可在后台查看，用于安全维护</li>
+    <li>我们不会向第三方出售或共享你的个人信息</li>
+  </ul>
+
+  <h2>四、AI 小智说明（重要）</h2>
+  <div class="note">
+    使用「AI 小智」时，你输入的内容以及最近几条对话上下文，会被发送到<b>第三方 AI 服务商</b>以生成回复。请不要在对话中填写密码、身份证号、住址等敏感信息。<br>
+    本站<b>不保存</b>你的对话正文，只记录每日调用次数。
+  </div>
+
+  <h2>五、保存期限</h2>
+  <ul>
+    <li>账号信息：在你主动注销或管理员删除前一直保留</li>
+    <li>访问记录（visits）：建议保留 <b>30 天</b></li>
+    <li>注册记录（reg_log）：建议保留 <b>180 天</b></li>
+    <li>限流记录（rate_limit）：短期自动过期</li>
+    <li>AI 用量：按日统计，过期后可清理</li>
+  </ul>
+
+  <h2>六、我们如何保护数据</h2>
+  <ul>
+    <li>密码使用 PBKDF2-SHA256（10 万次迭代）+ 随机盐，不存明文</li>
+    <li>数据库启用行级安全；接口密钥只存在于服务端，不下发到浏览器</li>
+    <li>全站 HTTPS</li>
+    <li>接口限流、注册频率限制、同 IP 注册超限自动拉黑</li>
+    <li>登录失败次数限制，防止暴力破解</li>
+  </ul>
+
+  <h2>七、你的权利</h2>
+  <ul>
+    <li><b>查询</b>：可查看自己的资料（用户中心）</li>
+    <li><b>更正</b>：可自行修改头像、签名、密码</li>
+    <li><b>删除</b>：可联系管理员删除账号；删除后其所有登录会话立即失效，帖子保留但解除归属</li>
+  </ul>
+
+  <h2>八、未成年人</h2>
+  <p>未成年人应在监护人指导下使用本站，不要填写真实姓名、住址、电话等敏感信息。</p>
+
+  <h2>九、变更通知</h2>
+  <p>本说明如有更新，会在本页公示并更新「最后更新」日期。</p>
+
+  <div class="note">
+    如对本说明有疑问，或希望删除你的账号与数据，请通过论坛公告或管理员账号联系。
+  </div>
+</div>
+</div>
+<script>
+(function(){try{
+  var t=localStorage.getItem('forum_token')||'';
+  var h={'Content-Type':'application/json'};
+  if(t) h['Authorization']='Bearer '+t;
+  fetch('https://jgwadmeqhzgzlkbbjcik.supabase.co/functions/v1/forum',
+    {method:'POST',headers:h,body:JSON.stringify({action:'track',path:location.pathname,referer:document.referrer||''})}
+  ).catch(function(){});
+}catch(e){}})();
+</script>
+</body>
+</html>

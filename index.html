@@ -200,7 +200,7 @@ function renderTop(){
 function renderNav(active){
   $('nav').innerHTML = `<a href="#/" class="${active==='home'?'on':''}">首页</a>` +
     boards.map(b=>`<a href="#/b/${b.slug}" class="${active===b.slug?'on':''}">${esc(b.name)}</a>`).join('') +
-    `<a href="ai.html">AI小智</a><a href="ascii.html">ASCII工具</a>` + (me&&me.is_admin?`<a href="admin.html">追踪</a>`:``);
+    `<a href="ai.html">AI小智</a><a href="ascii.html">ASCII工具</a><a href="privacy.html">隐私</a>` + (me&&me.is_admin?`<a href="admin.html">追踪</a>`:``);
 }
 async function loadBoards(force){
   if(!force && boards.length) return boards;

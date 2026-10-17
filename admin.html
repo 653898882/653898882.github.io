@@ -84,6 +84,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=t=>t?new Date(t).toLocaleString('zh-CN',{hour12:false}):'';
 const token=()=>localStorage.getItem('forum_token')||'';
+const meId=(()=>{try{return (JSON.parse(localStorage.getItem('forum_user')||'null')||{}).id||'';}catch(e){return '';}})();
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1600);}
 
 async function api(path,opts={}){
@@ -114,8 +115,9 @@ async function load(){
           <td class="muted">${esc(u.device||'-')}</td>
           <td class="muted">${fmt(u.created_at)}</td>
           <td style="white-space:nowrap">
-            <button class="btn" data-admin="${esc(u.id)}" data-val="${u.is_admin?'0':'1'}">${u.is_admin?'取消管理':'设为管理'}</button>
-            <button class="btn red" data-del="${esc(u.id)}" data-name="${esc(u.username)}">删除</button>
+            ${u.id===meId ? '<span class="muted">当前账号（不可操作）</span>' : `
+              <button class="btn" data-admin="${esc(u.id)}" data-val="${u.is_admin?'0':'1'}">${u.is_admin?'取消管理':'设为管理'}</button>
+              <button class="btn red" data-del="${esc(u.id)}" data-name="${esc(u.username)}">删除</button>`}
           </td>
         </tr>`).join('')}</tbody></table>` : '<div class="center">暂无用户</div>';
       document.querySelectorAll('[data-admin]').forEach(b=>b.onclick=()=>setAdmin(b.dataset.admin, b.dataset.val==='1'));
