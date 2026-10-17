@@ -2,352 +2,349 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="light">
-<link rel="preconnect" href="https://jgwadmeqhzgzlkbbjcik.supabase.co" crossorigin>
-<link rel="dns-prefetch" href="https://jgwadmeqhzgzlkbbjcik.supabase.co">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
 <title>私信与群聊</title>
+<link rel="preconnect" href="https://jgwadmeqhzgzlkbbjcik.supabase.co" crossorigin>
+<link rel="stylesheet" href="./theme.css">
+<script src="./icons.js"></script>
 <style>
-:root{color-scheme:light}
+:root{
+  color-scheme:light dark;
+  --bg:#f4f7fc; --card:#fff; --soft:#f6f9fd; --soft2:#eef4ff;
+  --ink:#22314a; --mut:#8896a8; --line:#e9eef6;
+  --g1:#4f8cff; --g2:#35d0ba;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#0e141b; --card:#151c26; --soft:#1b242f; --soft2:#1d2a3b;
+         --ink:#e7eef8; --mut:#8d9aac; --line:#26313f; }
+}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",Arial,sans-serif;background:#eef1f5;color:#333;font-size:14px}
-.top{background:#2b6cb0;color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px}
-.top b{font-size:16px}.top a{color:#dbe9f7;margin-left:auto;font-size:13px}
-.wrap{max-width:1000px;margin:10px auto;padding:0 10px 20px;display:flex;gap:10px;height:calc(100vh - 74px)}
-.side{width:270px;flex:none;display:flex;flex-direction:column;background:#fff;border:1px solid #cfd8e3;border-radius:6px;overflow:hidden}
-.side-hd{padding:8px 10px;background:#f5f8fb;border-bottom:1px solid #e1e8f0;display:flex;gap:6px;align-items:center}
-.side-hd b{font-size:14px}
-.side-hd .btn{margin-left:auto}
-.btn{border:0;background:#2b6cb0;color:#fff;border-radius:4px;padding:6px 10px;font-size:12px;cursor:pointer}
-.btn.gray{background:#e6ebf1;color:#333}
-.btn.small{padding:3px 8px;font-size:11px}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.ic{display:inline-block;vertical-align:-4px}
+/* 头 */
+.top{position:sticky;top:0;z-index:30;background:linear-gradient(120deg,var(--g1),var(--g2));box-shadow:0 6px 20px rgba(79,140,255,.22)}
+.top .in{max-width:1000px;margin:0 auto;padding:0 14px;height:56px;display:flex;align-items:center;gap:12px;color:#fff}
+.top .ttl{font-weight:800;font-size:16.5px}
+.top .acts{margin-left:auto;display:flex;gap:8px}
+.ibtn{display:flex;align-items:center;gap:5px;background:#ffffff26;border:0;color:#fff;border-radius:16px;padding:7px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.ibtn:active{transform:scale(.95)}
+/* 布局 */
+.wrap{max-width:1000px;margin:14px auto;padding:0 14px;display:flex;gap:14px;align-items:stretch;height:calc(100vh - 84px)}
+.pane{background:var(--card);border-radius:18px;box-shadow:0 4px 20px rgba(34,49,74,.06);display:flex;flex-direction:column;overflow:hidden}
+.list{width:300px;flex:none}
+.chatpane{flex:1;min-width:0}
+.ph{padding:13px 16px;font-weight:800;font-size:14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+/* 会话列表 */
 .convs{flex:1;overflow-y:auto}
-.conv{padding:9px 10px;border-bottom:1px solid #f0f3f7;cursor:pointer;display:flex;gap:8px;align-items:center}
-.conv:hover{background:#f7fafd}
-.conv.on{background:#e8f0fb}
-.conv .ic{width:34px;height:34px;border-radius:6px;background:#dbe6f3;color:#2b6cb0;display:flex;align-items:center;justify-content:center;font-size:15px;flex:none}
-.conv .mid{flex:1;min-width:0}
-.conv .tt{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.conv .ls{font-size:11.5px;color:#8a95a1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.badge{background:#e74c3c;color:#fff;border-radius:9px;font-size:11px;padding:0 6px;min-width:18px;text-align:center;line-height:18px}
-.badge.at{background:#e68a00}
-.main{flex:1;display:flex;flex-direction:column;background:#fff;border:1px solid #cfd8e3;border-radius:6px;overflow:hidden;min-width:0}
-.main-hd{padding:9px 12px;background:#f5f8fb;border-bottom:1px solid #e1e8f0;display:flex;align-items:center;gap:8px}
-.main-hd b{font-size:14px}
-.main-hd .meta{font-size:12px;color:#8a95a1}
-.main-hd .acts{margin-left:auto;display:flex;gap:6px}
-.ann{background:#fff8e6;border-bottom:1px solid #f0e0b8;padding:6px 12px;font-size:12.5px;color:#7a5b1e;display:none}
-.ann.show{display:block}
-.msgs{flex:1;overflow-y:auto;padding:12px;background:#fbfcfe}
-.msg{display:flex;gap:8px;margin-bottom:10px}
-.msg .av{width:30px;height:30px;border-radius:5px;background:#cfd8e3;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex:none}
-.msg .body{max-width:75%}
-.msg .nm{font-size:11.5px;color:#8a95a1;margin-bottom:2px}
-.msg .bub{background:#fff;border:1px solid #e1e8f0;border-radius:6px;padding:7px 10px;white-space:pre-wrap;word-break:break-word;line-height:1.6}
+.conv{display:flex;gap:10px;align-items:center;padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--line)}
+.conv:hover{background:var(--soft)}
+.conv.on{background:var(--soft2)}
+.av{width:40px;height:40px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex:none}
+.av img{width:100%;height:100%;object-fit:cover}
+.conv .m{flex:1;min-width:0}
+.conv .n{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px}
+.conv .s{font-size:11.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.bdg{background:#ff5d73;color:#fff;border-radius:10px;font-size:10.5px;font-weight:800;min-width:17px;height:17px;line-height:17px;text-align:center;padding:0 5px}
+.bdg.at{background:#ffb020}
+/* 聊天区 */
+.chead{padding:11px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px}
+.chead .bk{display:none;background:none;border:0;color:var(--mut);cursor:pointer;padding:4px}
+.chead .ti{font-weight:800;font-size:14.5px}
+.chead .sub{font-size:11.5px;color:var(--mut)}
+.chead .ops{margin-left:auto;display:flex;gap:6px}
+.obtn{background:var(--soft);border:0;border-radius:14px;padding:6px 11px;font-size:12px;color:var(--mut);cursor:pointer;font-family:inherit;font-weight:600}
+.ann{background:linear-gradient(120deg,#fff6e5,#ffeaf2);color:#8a5a1e;font-size:12.5px;padding:8px 14px;border-bottom:1px solid var(--line);display:none}
+.ann.on{display:block}
+@media (prefers-color-scheme: dark){ .ann{background:linear-gradient(120deg,#2a2216,#2b1b22);color:#e0b57a} }
+.msgs{flex:1;overflow-y:auto;padding:14px;background:var(--bg)}
+.msg{display:flex;gap:8px;margin-bottom:12px;align-items:flex-end}
+.msg .bub{max-width:76%;background:var(--card);border-radius:16px 16px 16px 4px;padding:9px 13px;line-height:1.6;white-space:pre-wrap;word-break:break-word;box-shadow:0 2px 8px rgba(34,49,74,.05);font-size:14.5px}
+.msg .who{font-size:11px;color:var(--mut);margin-bottom:3px}
 .msg.me{flex-direction:row-reverse}
-.msg.me .body{text-align:right}
-.msg.me .bub{background:#e8f0fb;border-color:#cfe0f7;text-align:left;display:inline-block}
-.msg .tm{font-size:10.5px;color:#b3bcc6;margin-top:3px}
-.inbar{border-top:1px solid #e1e8f0;padding:9px;display:flex;gap:8px;align-items:flex-end;background:#fff}
-.inbar textarea{flex:1;border:1px solid #cfd8e3;border-radius:5px;padding:8px 10px;font-family:inherit;font-size:14px;resize:none;min-height:42px;max-height:110px;outline:none}
-.inbar textarea:focus{border-color:#2b6cb0}
-.empty{color:#9aa5b1;text-align:center;padding:40px 10px;font-size:13px}
-.modal{position:fixed;inset:0;background:#0006;display:flex;align-items:center;justify-content:center;padding:16px;z-index:60}
-.modal .box{background:#fff;width:100%;max-width:400px;border-radius:6px;padding:16px}
-.modal h3{font-size:15px;margin-bottom:10px}
-.fld{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
-.fld input{border:1px solid #cfd8e3;border-radius:4px;padding:8px 10px;font-size:14px}
-.chip{display:inline-flex;align-items:center;gap:6px;background:#eef3f9;border-radius:14px;padding:3px 9px;font-size:12px;margin:2px}
-.chip b{cursor:pointer;color:#c0392b}
-.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#333;color:#fff;padding:7px 16px;border-radius:4px;font-size:13px;opacity:0;transition:.2s;pointer-events:none;z-index:80}
-.toast.show{opacity:.95}
-.hidden{display:none!important}
-@media(max-width:720px){
-  .wrap{flex-direction:column;height:auto}
-  .side{width:100%;max-height:36vh}
-  .main{height:60vh}
+.msg.me .bub{background:linear-gradient(120deg,var(--g1),var(--g2));color:#fff;border-radius:16px 16px 4px 16px;box-shadow:0 4px 14px rgba(79,140,255,.28)}
+.msg .t{font-size:10.5px;color:var(--mut);margin-top:3px}
+.inbar{border-top:1px solid var(--line);padding:10px;display:flex;gap:8px;align-items:flex-end;background:var(--card)}
+.inbar textarea{flex:1;border:1px solid var(--line);background:var(--soft);border-radius:18px;padding:10px 14px;font-family:inherit;font-size:14.5px;resize:none;min-height:42px;max-height:110px;outline:none;color:var(--ink)}
+.inbar textarea:focus{border-color:#bcd6ff;box-shadow:0 0 0 3px rgba(79,140,255,.12)}
+.send{border:0;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(120deg,var(--g1),var(--g2));cursor:pointer;box-shadow:0 6px 16px rgba(79,140,255,.3);flex:none}
+.send:active{transform:scale(.93)}
+.send:disabled{opacity:.5}
+/* 弹窗 */
+.modal{position:fixed;inset:0;background:#0b1520aa;z-index:70;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--card);width:100%;max-width:520px;max-height:80vh;border-radius:22px 22px 0 0;padding:18px 16px 24px;overflow-y:auto}
+.sheet h3{font-size:16px;font-weight:800;margin-bottom:12px}
+.fld{margin-bottom:12px}
+.fld label{font-size:12.5px;color:var(--mut);display:block;margin-bottom:5px}
+input,textarea,select{width:100%;border:1px solid var(--line);background:var(--soft);border-radius:14px;padding:11px 13px;font-size:14.5px;font-family:inherit;color:var(--ink);outline:none}
+input:focus,textarea:focus{border-color:#bcd6ff;box-shadow:0 0 0 3px rgba(79,140,255,.12)}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--soft2);color:#2f6fe0;border-radius:16px;padding:5px 11px;font-size:12.5px;margin:3px}
+.chip b{cursor:pointer;color:#e0245e}
+.btn{border:0;border-radius:22px;padding:10px 20px;font-weight:800;font-size:13.5px;color:#fff;background:linear-gradient(120deg,var(--g1),var(--g2));cursor:pointer;font-family:inherit}
+.btn.gray{background:var(--soft);color:var(--mut)}
+.empty{color:var(--mut);text-align:center;padding:40px 14px;font-size:13px}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) scale(.9);background:#22314a;color:#fff;padding:10px 18px;border-radius:24px;font-size:13px;opacity:0;transition:.2s;pointer-events:none;z-index:90}
+.toast.show{opacity:1;transform:translateX(-50%) scale(1)}
+.hide{display:none!important}
+@media(max-width:820px){
+  .wrap{height:calc(100vh - 76px);padding:0 10px;margin-top:10px}
+  .list{width:100%}
+  body.chatopen .list{display:none}
+  body:not(.chatopen) .chatpane{display:none}
+  .chead .bk{display:flex}
 }
 </style>
-<link rel="stylesheet" href="./theme.css">
 </head>
 <body>
-<div class="top"><b>💬 私信与群聊</b><a href="./">← 返回论坛</a></div>
+<div class="top"><div class="in">
+  <span class="ttl">私信</span>
+  <span class="acts">
+    <button class="ibtn" id="btnDm"></button>
+    <button class="ibtn" id="btnGroup"></button>
+  </span>
+</div></div>
+
 <div class="wrap">
-  <div class="side">
-    <div class="side-hd">
-      <b>会话</b>
-      <button class="btn small" id="newDmBtn">私信</button>
-      <button class="btn small gray" id="newGroupBtn">群聊</button>
-    </div>
+  <div class="pane list">
+    <div class="ph">会话</div>
     <div class="convs" id="convs"><div class="empty">加载中…</div></div>
   </div>
-  <div class="main">
-    <div class="main-hd">
-      <b id="convTitle">未选择会话</b>
-      <span class="meta" id="convMeta"></span>
-      <span class="acts">
-        <button class="btn small gray hidden" id="annBtn">公告</button>
-        <button class="btn small gray hidden" id="memberBtn">成员</button>
-      </span>
+  <div class="pane chatpane">
+    <div class="chead">
+      <button class="bk" id="backBtn"></button>
+      <div style="min-width:0">
+        <div class="ti" id="cTitle">未选择会话</div>
+        <div class="sub" id="cSub"></div>
+      </div>
+      <div class="ops">
+        <button class="obtn hide" id="annBtn">公告</button>
+        <button class="obtn hide" id="memBtn">成员</button>
+      </div>
     </div>
     <div class="ann" id="annBar"></div>
-    <div class="msgs" id="msgs"><div class="empty">选择左侧会话开始聊天</div></div>
+    <div class="msgs" id="msgs"><div class="empty"><span style="color:#cfe0f7;display:block;margin-bottom:10px" id="emptyIco"></span>选择一个会话开始聊天</div></div>
     <div class="inbar">
-      <textarea id="input" placeholder="输入消息…（@用户名 可提醒，最多 1000 字）" maxlength="1000" disabled></textarea>
-      <button class="btn" id="sendBtn" disabled>发送</button>
+      <textarea id="input" placeholder="说点什么…（@用户名 可提醒）" maxlength="1000" disabled></textarea>
+      <button class="send" id="sendBtn" disabled></button>
     </div>
   </div>
 </div>
 
-<div class="modal hidden" id="mDm"><div class="box">
+<div class="modal hide" id="mDm"><div class="sheet">
   <h3>发起私信</h3>
-  <div class="fld"><input id="dmSearch" placeholder="搜索用户名…"></div>
-  <div id="dmResult"></div>
-  <div style="text-align:right;margin-top:10px"><button class="btn gray" id="dmCancel">关闭</button></div>
+  <div class="fld"><label>搜索用户名</label><input id="dmQ" placeholder="输入名字…"></div>
+  <div id="dmRes"></div>
+  <div style="text-align:right;margin-top:14px"><button class="btn gray" id="dmOff">关闭</button></div>
 </div></div>
 
-<div class="modal hidden" id="mGroup"><div class="box">
+<div class="modal hide" id="mGroup"><div class="sheet">
   <h3>创建群聊</h3>
-  <div class="fld"><input id="gTitle" placeholder="群名称（必填）" maxlength="30"></div>
-  <div class="fld"><input id="gSearch" placeholder="搜索并添加成员…"></div>
+  <div class="fld"><label>群名称</label><input id="gTitle" maxlength="30" placeholder="给群起个名字"></div>
+  <div class="fld"><label>群公告（可选）</label><input id="gAnn" maxlength="300" placeholder="一句话公告"></div>
+  <div class="fld"><label>搜索并添加成员</label><input id="gQ" placeholder="输入名字…"></div>
   <div id="gChips"></div>
-  <div id="gResult"></div>
-  <div style="text-align:right;margin-top:10px"><button class="btn gray" id="gCancel">取消</button> <button class="btn" id="gCreate">创建</button></div>
+  <div id="gRes"></div>
+  <div style="text-align:right;margin-top:14px">
+    <button class="btn gray" id="gOff">取消</button>
+    <button class="btn" id="gCreate" style="margin-left:8px">创建</button>
+  </div>
 </div></div>
 
-<div class="modal hidden" id="mAnn"><div class="box">
+<div class="modal hide" id="mAnn"><div class="sheet">
   <h3>群公告</h3>
-  <div class="fld"><textarea id="annText" style="border:1px solid #cfd8e3;border-radius:4px;padding:8px;min-height:90px;font-family:inherit"></textarea></div>
-  <div style="text-align:right"><button class="btn gray" id="annCancel">取消</button> <button class="btn" id="annSave">保存</button></div>
+  <div class="fld"><textarea id="annText" style="min-height:100px" maxlength="300"></textarea></div>
+  <div style="text-align:right"><button class="btn gray" id="annOff">取消</button>
+    <button class="btn" id="annSave" style="margin-left:8px">保存</button></div>
 </div></div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-const API = "https://jgwadmeqhzgzlkbbjcik.supabase.co/functions/v1/forum";
-const SB_URL = "https://jgwadmeqhzgzlkbbjcik.supabase.co";
-const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impnd2FkbWVxaHpnemxrYmJqY2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyMTQ1NzIsImV4cCI6MjEwNzc5MDU3Mn0.IE9tXL2umU3Icg7b7vxxcKuRj_x4As1GbQodA1e8hmo";
+const API="https://jgwadmeqhzgzlkbbjcik.supabase.co/functions/v1/forum";
+const SB_URL="https://jgwadmeqhzgzlkbbjcik.supabase.co";
+const SB_ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impnd2FkbWVxaHpnemxrYmJqY2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyMTQ1NzIsImV4cCI6MjEwNzc5MDU3Mn0.IE9tXL2umU3Icg7b7vxxcKuRj_x4As1GbQodA1e8hmo";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const token=()=>localStorage.getItem('forum_token')||'';
+const me=(()=>{try{return JSON.parse(localStorage.getItem('forum_user')||'null');}catch(e){return null;}})();
+const rel=t=>{const d=Date.now()-new Date(t).getTime();if(d<60000)return'刚刚';if(d<3600000)return Math.floor(d/60000)+'分钟前';if(d<86400000)return Math.floor(d/3600000)+'小时前';return new Date(t).toLocaleDateString('zh-CN');};
+const hm=t=>new Date(t).toLocaleTimeString('zh-CN',{hour12:false,hour:'2-digit',minute:'2-digit'});
+const PALETTE=[['#4f8cff','#35d0ba'],['#ff8f70','#ff5d73'],['#a78bfa','#7c9dff'],['#fbbf24','#fb923c'],['#34d399','#22d3ee'],['#f472b6','#a78bfa']];
+function grad(n){let h=0;for(const c of String(n||'?'))h=(h*31+c.charCodeAt(0))>>>0;const p=PALETTE[h%PALETTE.length];return `linear-gradient(135deg,${p[0]},${p[1]})`;}
+function av(n,size){const st=size?`width:${size}px;height:${size}px;`:'';return `<div class="av" style="${st}background:${grad(n)}">${esc(String(n||'?').slice(0,1))}</div>`;}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1700);}
 
-const $ = id => document.getElementById(id);
-let sb = null;
-function ensureSb(){
-  return new Promise((resolve, reject) => {
-    if (sb) return resolve(sb);
-    if (window.supabase) { sb = window.supabase.createClient(SB_URL, SB_ANON); return resolve(sb); }
-    const sc = document.createElement('script');
-    sc.src = './lib/supabase.js';
-    sc.onload = () => { sb = window.supabase.createClient(SB_URL, SB_ANON); resolve(sb); };
-    sc.onerror = () => reject(new Error('realtime 组件加载失败'));
-    document.head.appendChild(sc);
-  });
-}
-const token = () => localStorage.getItem('forum_token') || '';
-const me = (()=>{ try { return JSON.parse(localStorage.getItem('forum_user')||'null'); } catch(e){ return null; } })();
+let sb=null;
+function ensureSb(){return new Promise((res,rej)=>{ if(sb)return res(sb);
+  if(window.supabase){sb=window.supabase.createClient(SB_URL,SB_ANON);return res(sb);}
+  const s=document.createElement('script'); s.src='./lib/supabase.js';
+  s.onload=()=>{sb=window.supabase.createClient(SB_URL,SB_ANON);res(sb);}; s.onerror=()=>rej(new Error('realtime加载失败'));
+  document.head.appendChild(s); }); }
 
-const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmtT = t => new Date(t).toLocaleTimeString('zh-CN',{hour12:false,hour:'2-digit',minute:'2-digit'});
-const fmtD = t => new Date(t).toLocaleString('zh-CN',{hour12:false});
+let cur=null, curInfo=null, channel=null, members=[], convs=[], gSel=[];
 
-let curConv = null, curConvInfo = null, channel = null;
-let groupMembers = [];
-let allConvs = [];
-
-function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1600); }
-
-async function api(path, opts={}){
-  const h = {};
-  if(opts.body) h['Content-Type']='application/json';
-  if(token()) h['Authorization']='Bearer '+token();
-  const r = await fetch(API+path,{method:opts.method||'GET',headers:h,body:opts.body?JSON.stringify(opts.body):undefined});
-  const j = await r.json().catch(()=>({}));
-  if(!r.ok){ const e=new Error(j.error||('HTTP '+r.status)); e.status=r.status; throw e; }
+async function api(path,opts={}){
+  const h={}; if(opts.body)h['Content-Type']='application/json';
+  if(token())h['Authorization']='Bearer '+token();
+  const r=await fetch(API+path,{method:opts.method||'GET',headers:h,body:opts.body?JSON.stringify(opts.body):undefined});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok){const e=new Error(j.error||('HTTP '+r.status));e.status=r.status;throw e;}
   return j;
 }
 
-if(!token()){
-  document.querySelector('.wrap').innerHTML = '<div class="empty" style="margin:auto">请先到论坛登录后再使用私信功能。<br><br><a href="./">返回论坛登录</a></div>';
-}
+/* 顶部按钮 */
+$('btnDm').innerHTML = icon('user',{size:15})+'<span>私信</span>';
+$('btnGroup').innerHTML = icon('users',{size:15})+'<span>群聊</span>';
+$('sendBtn').innerHTML = icon('send',{size:20});
+$('backBtn').innerHTML = icon('back',{size:20});
+$('emptyIco').innerHTML = icon('chat',{size:44});
+$('btnDm').onclick=()=>{ $('mDm').classList.remove('hide'); $('dmQ').value=''; $('dmRes').innerHTML=''; };
+$('btnGroup').onclick=()=>{ $('mGroup').classList.remove('hide'); $('gTitle').value=''; $('gAnn').value=''; $('gQ').value=''; gSel=[]; paintChips(); $('gRes').innerHTML=''; };
+$('dmOff').onclick=()=>$('mDm').classList.add('hide');
+$('gOff').onclick=()=>$('mGroup').classList.add('hide');
+$('annOff').onclick=()=>$('mAnn').classList.add('hide');
+$('backBtn').onclick=()=>{ document.body.classList.remove('chatopen'); cur=null; renderConvs(); };
+[$('mDm'),$('mGroup'),$('mAnn')].forEach(m=>m.onclick=e=>{ if(e.target===m) m.classList.add('hide'); });
 
-// ---------------- 会话列表 ----------------
+/* 会话列表 */
 async function loadConvs(){
-  try{
-    const j = await api('?action=conversations');
-    allConvs = j.conversations || [];
-    renderConvs();
-  }catch(e){
-    $('convs').innerHTML = '<div class="empty">'+esc(e.message)+'</div>';
-  }
+  try{ const j=await api('?action=conversations'); convs=j.conversations||[]; renderConvs(); }
+  catch(e){ $('convs').innerHTML='<div class="empty">'+esc(e.message)+'</div>'; }
 }
 function renderConvs(){
-  const box = $('convs');
-  if(!allConvs.length){ box.innerHTML='<div class="empty">还没有会话<br>点上方按钮开始</div>'; return; }
-  box.innerHTML = allConvs.map(c=>`
-    <div class="conv ${curConv===c.id?'on':''}" data-id="${c.id}">
-      <div class="ic">${c.type==='group'?'👥':'💬'}</div>
-      <div class="mid">
-        <div class="tt">${esc(c.title)}</div>
-        <div class="ls">${c.last?esc(c.last.sender+': '+c.last.body.slice(0,20)):'暂无消息'}</div>
+  if(!convs.length){ $('convs').innerHTML='<div class="empty"><div style="color:#cfe0f7">'+icon('chat',{size:40})+'</div><p style="margin-top:10px">还没有会话<br>点右上角开始</p></div>'; return; }
+  $('convs').innerHTML=convs.map(c=>`
+    <div class="conv ${cur===c.id?'on':''}" data-id="${c.id}">
+      ${av(c.type==='group'?'群':c.title)}
+      <div class="m">
+        <div class="n">${c.type==='group'?icon('users',{size:13}):''}${esc(c.title)}
+          ${c.mention?`<span class="bdg at">@</span>`:''}</div>
+        <div class="s">${c.last?esc(c.last.sender+': '+String(c.last.body).slice(0,16)):'暂无消息'}</div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end">
-        ${c.mention?`<span class="badge at">@${c.mention}</span>`:''}
-        ${c.unread?`<span class="badge">${c.unread}</span>`:''}
-      </div>
+      ${c.unread?`<span class="bdg">${c.unread>99?'99+':c.unread}</span>`:''}
     </div>`).join('');
-  box.querySelectorAll('.conv').forEach(el=>el.onclick=()=>openConv(el.dataset.id));
+  $('convs').querySelectorAll('.conv').forEach(el=>el.onclick=()=>openConv(el.dataset.id));
 }
 
-// ---------------- 打开会话 ----------------
+/* 打开会话 */
 async function openConv(id){
   try{
-    const j = await api('?action=messages&conv_id='+encodeURIComponent(id));
-    curConv = id; curConvInfo = j.conv; groupMembers = j.members || [];
-    const c = allConvs.find(x=>x.id===id);
-    $('convTitle').textContent = c ? c.title : (j.conv.title||'会话');
-    $('convMeta').textContent = j.conv.type==='group' ? `${(j.members||[]).length} 人` : '';
-    const annText = j.conv.announcement || '';
-    $('annBar').textContent = annText ? ('📢 群公告：'+annText) : '';
-    $('annBar').classList.toggle('show', !!annText);
-    const isOwner = j.conv.my_role === 'owner';
-    $('annBtn').classList.toggle('hidden', j.conv.type!=='group' || !isOwner);
-    $('memberBtn').classList.toggle('hidden', j.conv.type!=='group');
-    $('input').disabled = false; $('sendBtn').disabled = false;
-
-    $('msgs').innerHTML = '';
-    (j.messages||[]).forEach(m=>appendMsg(m, false));
+    const j=await api('?action=messages&conv_id='+encodeURIComponent(id));
+    cur=id; curInfo=j.conv; members=j.members||[];
+    const meta=convs.find(x=>x.id===id);
+    $('cTitle').textContent = meta?meta.title:(j.conv.title||'会话');
+    $('cSub').textContent = j.conv.type==='group'? members.length+' 人' : '';
+    const ann=j.conv.announcement||'';
+    $('annBar').textContent = ann?('公告：'+ann):'';
+    $('annBar').classList.toggle('on', !!ann);
+    $('annBtn').classList.toggle('hide', !(j.conv.type==='group'&&j.conv.my_role==='owner'));
+    $('memBtn').classList.toggle('hide', j.conv.type!=='group');
+    $('input').disabled=false; $('sendBtn').disabled=false;
+    $('msgs').innerHTML='';
+    (j.messages||[]).forEach(m=>addMsg(m,false));
     scrollBottom();
-    await api('', {method:'POST', body:{action:'mark_read', conv_id:id}});
-    const c2 = allConvs.find(x=>x.id===id); if(c2){ c2.unread=0; c2.mention=0; renderConvs(); }
-    subscribe(id, j.conv.secret).catch(()=>{});
+    document.body.classList.add('chatopen');
+    await api('',{method:'POST',body:{action:'mark_read',conv_id:id}});
+    const c=convs.find(x=>x.id===id); if(c){c.unread=0;c.mention=0;renderConvs();}
+    subscribe(id,j.conv.secret);
   }catch(e){ toast(e.message); }
 }
-
-function appendMsg(m, isRealtime){
-  const box = $('msgs');
-  const mine = me && m.sender_id === me.id;
-  const div = document.createElement('div');
-  div.className = 'msg' + (mine?' me':'');
-  div.innerHTML = `
-    <div class="av">${esc((m.sender||'?').slice(0,1))}</div>
-    <div class="body">
-      ${mine?'':`<div class="nm">${esc(m.sender||'')}</div>`}
+function addMsg(m,rt){
+  const box=$('msgs');
+  if(box.querySelector('.empty')) box.innerHTML='';
+  const mine=me&&m.sender_id===me.id;
+  const d=document.createElement('div');
+  d.className='msg'+(mine?' me':'');
+  d.innerHTML=(mine?'':av(m.sender,32))+`
+    <div style="max-width:100%">
+      ${mine?'':`<div class="who">${esc(m.sender||'')}</div>`}
       <div class="bub">${esc(m.body)}</div>
-      <div class="tm">${fmtT(m.created_at)}</div>
+      <div class="t">${hm(m.created_at)}</div>
     </div>`;
-  box.appendChild(div);
-  if(isRealtime) scrollBottom();
+  box.appendChild(d);
+  if(rt) scrollBottom();
 }
-function scrollBottom(){ const b=$('msgs'); b.scrollTop = b.scrollHeight; }
+function scrollBottom(){ const b=$('msgs'); b.scrollTop=b.scrollHeight; }
 
-// ---------------- Realtime 真推送 ----------------
-async function subscribe(convId, secret){
+/* 实时 */
+async function subscribe(convId,secret){
   try{
-  if(channel && sb){ try{ await sb.removeChannel(channel); }catch(e){} channel = null; }
-  await ensureSb();
-  channel = sb.channel('conv:'+convId+':'+secret, { config: { broadcast: { self: false } } });
-  channel.on('broadcast', { event: 'msg' }, ({ payload }) => {
-    if(!payload) return;
-    if(payload.type === 'announcement'){
-      curConvInfo.announcement = payload.text || '';
-      $('annBar').textContent = payload.text ? ('📢 群公告：'+payload.text) : '';
-      $('annBar').classList.toggle('show', !!payload.text);
-      return;
-    }
-    if(curConv !== convId) return;
-    appendMsg(payload, true);
-    api('', {method:'POST', body:{action:'mark_read', conv_id:convId}}).catch(()=>{});
-  });
-  channel.subscribe((status)=>{ if(status==='SUBSCRIBED') console.log('realtime connected'); });
-  }catch(e){ console.warn('realtime 不可用，降级为手动刷新', e); }
+    if(channel&&sb){ try{await sb.removeChannel(channel);}catch(e){} channel=null; }
+    await ensureSb();
+    channel=sb.channel('conv:'+convId+':'+secret,{config:{broadcast:{self:false}}});
+    channel.on('broadcast',{event:'msg'},({payload})=>{
+      if(!payload||cur!==convId)return;
+      if(payload.type==='announcement'){
+        curInfo.announcement=payload.text||'';
+        $('annBar').textContent=payload.text?('公告：'+payload.text):'';
+        $('annBar').classList.toggle('on',!!payload.text); return;
+      }
+      addMsg(payload,true);
+    });
+    channel.subscribe();
+  }catch(e){ console.warn('realtime不可用',e); }
 }
 
-// ---------------- 发送 ----------------
-async function send(){
-  const v = $('input').value.trim();
-  if(!v || !curConv) return;
-  $('sendBtn').disabled = true;
-  try{
-    const j = await api('', {method:'POST', body:{action:'send_message', conv_id:curConv, body:v}});
-    $('input').value = '';
-    appendMsg(j.message, true);
-    loadConvs();
+/* 发送 */
+$('sendBtn').onclick=async()=>{
+  const v=$('input').value.trim(); if(!v||!cur)return;
+  $('sendBtn').disabled=true;
+  try{ const j=await api('',{method:'POST',body:{action:'send_message',conv_id:cur,body:v}});
+    $('input').value=''; addMsg(j.message,true); loadConvs();
   }catch(e){ toast(e.message); }
-  finally{ $('sendBtn').disabled = false; }
-}
-$('sendBtn').onclick = send;
-$('input').addEventListener('keydown', e=>{
-  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); }
-});
-
-// ---------------- 新建私信 ----------------
-$('newDmBtn').onclick = ()=>{ $('mDm').classList.remove('hidden'); $('dmSearch').value=''; $('dmResult').innerHTML=''; };
-$('dmCancel').onclick = ()=>$('mDm').classList.add('hidden');
-let dmTimer;
-$('dmSearch').oninput = e=>{
-  clearTimeout(dmTimer);
-  dmTimer = setTimeout(async()=>{
-    const q = e.target.value.trim(); if(!q){ $('dmResult').innerHTML=''; return; }
-    try{
-      const j = await api('?action=user_search&q='+encodeURIComponent(q));
-      $('dmResult').innerHTML = (j.users||[]).map(u=>`<div class="chip" style="cursor:pointer" data-uid="${u.id}">${esc(u.username)}</div>`).join('') || '<div class="empty">没有找到用户</div>';
-      $('dmResult').querySelectorAll('[data-uid]').forEach(el=>el.onclick=async()=>{
-        try{ const r = await api('',{method:'POST',body:{action:'open_dm',user_id:el.dataset.uid}});
-          $('mDm').classList.add('hidden'); await loadConvs(); openConv(r.conv_id);
-        }catch(err){ toast(err.message); }
-      });
-    }catch(err){ toast(err.message); }
-  }, 300);
+  finally{ $('sendBtn').disabled=false; }
 };
+$('input').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('sendBtn').click();} });
 
-// ---------------- 新建群聊 ----------------
-let gSel = [];
-$('newGroupBtn').onclick = ()=>{ $('mGroup').classList.remove('hidden'); $('gTitle').value=''; $('gSearch').value=''; gSel=[]; renderChips(); $('gResult').innerHTML=''; };
-$('gCancel').onclick = ()=>$('mGroup').classList.add('hidden');
-function renderChips(){
-  $('gChips').innerHTML = gSel.map(u=>`<span class="chip">${esc(u.username)}<b data-rm="${u.id}">×</b></span>`).join('');
-  $('gChips').querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ gSel = gSel.filter(x=>x.id!==b.dataset.rm); renderChips(); });
+/* 新私信 */
+let dmT;
+$('dmQ').oninput=e=>{ clearTimeout(dmT); dmT=setTimeout(async()=>{
+  const q=e.target.value.trim(); if(!q)return $('dmRes').innerHTML='';
+  try{ const j=await api('?action=user_search&q='+encodeURIComponent(q));
+    $('dmRes').innerHTML=(j.users||[]).map(u=>`<span class="chip" data-uid="${u.id}">${esc(u.username)}</span>`).join('')||'<div class="empty">没找到</div>';
+    $('dmRes').querySelectorAll('[data-uid]').forEach(el=>el.onclick=async()=>{
+      try{ const r=await api('',{method:'POST',body:{action:'open_dm',user_id:el.dataset.uid}});
+        $('mDm').classList.add('hide'); await loadConvs(); openConv(r.conv_id);
+      }catch(err){toast(err.message);} });
+  }catch(err){toast(err.message);} },300); };
+
+/* 新群聊 */
+function paintChips(){
+  $('gChips').innerHTML=gSel.map(u=>`<span class="chip">${esc(u.username)}<b data-rm="${u.id}">×</b></span>`).join('');
+  $('gChips').querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{gSel=gSel.filter(x=>x.id!==b.dataset.rm);paintChips();});
 }
-let gTimer;
-$('gSearch').oninput = e=>{
-  clearTimeout(gTimer);
-  gTimer = setTimeout(async()=>{
-    const q = e.target.value.trim(); if(!q){ $('gResult').innerHTML=''; return; }
-    try{
-      const j = await api('?action=user_search&q='+encodeURIComponent(q));
-      $('gResult').innerHTML = (j.users||[]).map(u=>`<div class="chip" style="cursor:pointer" data-add="${u.id}" data-name="${esc(u.username)}">+ ${esc(u.username)}</div>`).join('');
-      $('gResult').querySelectorAll('[data-add]').forEach(el=>el.onclick=()=>{
-        if(!gSel.find(x=>x.id===el.dataset.add)) gSel.push({id:el.dataset.add, username:el.dataset.name});
-        renderChips();
-      });
-    }catch(err){ toast(err.message); }
-  }, 300);
-};
-$('gCreate').onclick = async ()=>{
-  const title = $('gTitle').value.trim();
-  if(!title) return toast('请填写群名称');
-  try{
-    const j = await api('',{method:'POST',body:{action:'create_group', title, member_ids:gSel.map(x=>x.id)}});
-    $('mGroup').classList.add('hidden');
-    await loadConvs(); openConv(j.conv_id);
+let gT;
+$('gQ').oninput=e=>{ clearTimeout(gT); gT=setTimeout(async()=>{
+  const q=e.target.value.trim(); if(!q)return $('gRes').innerHTML='';
+  try{ const j=await api('?action=user_search&q='+encodeURIComponent(q));
+    $('gRes').innerHTML=(j.users||[]).map(u=>`<span class="chip" data-add="${u.id}" data-name="${esc(u.username)}">+ ${esc(u.username)}</span>`).join('');
+    $('gRes').querySelectorAll('[data-add]').forEach(el=>el.onclick=()=>{
+      if(!gSel.find(x=>x.id===el.dataset.add)) gSel.push({id:el.dataset.add,username:el.dataset.name});
+      paintChips(); });
+  }catch(err){toast(err.message);} },300); };
+$('gCreate').onclick=async()=>{
+  const title=$('gTitle').value.trim(); if(!title)return toast('请填写群名称');
+  try{ const j=await api('',{method:'POST',body:{action:'create_group',title,announcement:$('gAnn').value.trim(),member_ids:gSel.map(x=>x.id)}});
+    $('mGroup').classList.add('hide'); await loadConvs(); openConv(j.conv_id);
   }catch(e){ toast(e.message); }
 };
 
-// ---------------- 公告 / 成员 ----------------
-$('annBtn').onclick = ()=>{ $('annText').value = curConvInfo.announcement || ''; $('mAnn').classList.remove('hidden'); };
-$('annCancel').onclick = ()=>$('mAnn').classList.add('hidden');
-$('annSave').onclick = async ()=>{
-  try{ await api('',{method:'POST',body:{action:'set_announcement', conv_id:curConv, text:$('annText').value}});
-    $('mAnn').classList.add('hidden'); openConv(curConv);
+/* 公告 / 成员 */
+$('annBtn').onclick=()=>{ $('annText').value=(curInfo&&curInfo.announcement)||''; $('mAnn').classList.remove('hide'); };
+$('annSave').onclick=async()=>{
+  try{ await api('',{method:'POST',body:{action:'set_announcement',conv_id:cur,text:$('annText').value.trim()}});
+    $('mAnn').classList.add('hide'); openConv(cur);
   }catch(e){ toast(e.message); }
 };
-$('memberBtn').onclick = ()=>{
-  const txt = groupMembers.map(m=>m.username).join('、');
-  alert('群成员（'+groupMembers.length+' 人）：\n'+txt);
-};
+$('memBtn').onclick=()=>{ alert('群成员：\n'+members.map(m=>m.username).join('、')); };
 
-// 启动
-if(token()){
+/* 启动 */
+if(!token()){
+  document.querySelector('.wrap').innerHTML='<div class="pane" style="padding:40px;text-align:center;color:var(--mut)">请先到 <a href="./" style="color:#2f6cb0">论坛登录</a> 后使用私信</div>';
+}else{
   loadConvs();
-  setInterval(loadConvs, 30000);
+  setInterval(loadConvs,30000);
 }
 </script>
 </body>
