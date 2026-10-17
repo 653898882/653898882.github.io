@@ -108,7 +108,7 @@ video{display:none}
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { parseGIF, decompressFrames } from 'https://cdn.jsdelivr.net/npm/gifuct-js@2.1.2/+esm';
+import { parseGIF, decompressFrames } from './lib/gifuct.js';
 
 const $ = id => document.getElementById(id);
 const pre = $('out'), cv = $('cv'), stage = document.querySelector('.stage');
@@ -290,7 +290,7 @@ function captureForRecord(grid){
 async function encodeGif(){
   try{
     $('gifBtn').disabled=true; toast('正在生成 GIF…');
-    const { GIFEncoder, quantize, applyPalette } = await import('https://cdn.jsdelivr.net/npm/gifenc@1.0.3/+esm');
+    const { GIFEncoder, quantize, applyPalette } = await import('./lib/gifenc.js');
     const gif=GIFEncoder(); const delay=Math.max(20,+$('speed').value);
     const {w,h}=rec.frames[0];
     for(const f of rec.frames){ const pal=quantize(f.data,256); const idx=applyPalette(f.data,pal); gif.writeFrame(idx,w,h,{palette:pal,delay}); }
