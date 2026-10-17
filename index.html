@@ -521,7 +521,15 @@ async function profile(id){
     <tr><td><a href="#/t/${p.id}">${esc(p.title)}</a></td><td class="col-num">${p.reply_count||0}</td><td class="col-num">${p.views||0}</td><td class="col-last">${fmt(p.created_at)}</td></tr>`).join('');
   app.innerHTML = `
     <div class="crumb">当前位置：<a href="#/">首页</a> &raquo; 用户资料</div>
-    <div class="panel"><div class="panel-hd">${esc(u.username)} 的资料</div><div class="panel-bd">
+    <div class="panel"><div class="panel-hd">
+      ${esc(u.username)} 的资料
+      ${j.me && j.me.id!==u.id ? `<span class="right"><button class="btn" id="followBtn" style="padding:5px 14px;font-size:13px">${j.isFollowing?'已关注':'关注'}</button></span>`:''}
+    </div><div class="panel-bd">
+      <div style="display:flex;gap:18px;margin-bottom:12px;font-size:13px">
+        <span>粉丝 <b>${j.followers||0}</b></span>
+        <span>关注 <b>${j.following||0}</b></span>
+        <span>经验 <b>${u.points||0}</b></span>
+      </div>
       <table>
         <tr><td style="width:120px" class="muted">用户名</td><td>${esc(u.username)}${u.is_admin?' <b style="color:#c00">管理员</b>':''}</td></tr>
         <tr><td class="muted">等级</td><td>${level(u.post_count)}</td></tr>
@@ -536,6 +544,17 @@ async function profile(id){
       <table><thead><tr><th>标题</th><th class="col-num">回复</th><th class="col-num">查看</th><th class="col-last">发表</th></tr></thead>
       <tbody>${rows||'<tr><td colspan="4" class="center muted">暂无</td></tr>'}</tbody></table>
     </div>`;
+  if($('followBtn')){
+    $('followBtn').onclick = async ()=>{
+      if(!j.me) return openAuth('login');
+      const btn = $('followBtn');
+      const willFollow = btn.textContent.trim() !== '已关注';
+      try{
+        await req('',{method:'POST',body:{action:'follow',user_id:u.id,value:willFollow}});
+        toast(willFollow?'关注成功':'已取消关注'); profile(id);
+      }catch(e){ toast(e.message); }
+    };
+  }
 }
 
 // ---------------- 用户中心 ----------------
@@ -653,7 +672,12 @@ $('topSearchBtn').onclick = ()=>{ const q=$('topSearch').value.trim(); if(q) loc
 $('topSearch').addEventListener('keydown',e=>{ if(e.key==='Enter') $('topSearchBtn').click(); });
 
 // 启动
-(async ()=>{ await validateSession(); renderTop(); await loadBoards(); route(); })();
+(async ()=>{
+  // 兼容 ?u=<id> 链接：转成 #/u/<id>
+  const sp = new URLSearchParams(location.search);
+  if(sp.get('u')){ const id = sp.get('u'); history.replaceState({}, '', location.pathname); location.hash = '#/u/' + encodeURIComponent(id); }
+  await validateSession(); renderTop(); await loadBoards(); route();
+})();
 </script>
 <script>
 /* ===== 隐私说明弹窗：点空白、点叉、点按钮都可关闭 ===== */
