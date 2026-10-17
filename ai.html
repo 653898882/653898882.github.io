@@ -125,10 +125,12 @@ async function loadQuota(){
     if(j.wait>0) startCooldown(j.wait);
     if(remaining<=0){ sendBtn.disabled=true; $('tip').textContent='今日次数已用完，明天再来'; }
   }catch(e){
-    if(e.status===401){ showLogin(); }
+    if(e.status===401){ clearSession(); showLogin(); }
     else toast(e.message);
   }
 }
+
+function clearSession(){ localStorage.removeItem('forum_token'); localStorage.removeItem('forum_user'); }
 
 function showLogin(){
   chat.innerHTML = `<div class="msg sys"><div class="av">!</div><div><div class="bub">请先登录论坛账号后再使用 AI 小智。\n\n回到论坛登录：<a href="./">点这里</a></div></div></div>`;

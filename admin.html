@@ -58,6 +58,11 @@ input{border:1px solid #cfd8e3;border-radius:3px;padding:6px 9px;font-size:13px;
   </div>
 
   <div class="panel">
+    <div class="panel-hd">用户管理 <span class="r">删除账号会立即踢下线</span></div>
+    <div class="panel-bd"><div id="userBox" class="center">加载中…</div></div>
+  </div>
+
+  <div class="panel">
     <div class="panel-hd">按 IP 统计注册</div>
     <div class="panel-bd"><div id="regBox" class="center">加载中…</div></div>
   </div>
@@ -97,6 +102,26 @@ async function load(){
     $('tVis').textContent=j.totals.visits;
     $('tBlk').textContent=j.totals.black;
 
+    try{
+      const uj = await api('?action=admin_users');
+      $('userBox').innerHTML = uj.users.length ? `<table>
+        <thead><tr><th>用户名</th><th>管理员</th><th>帖子</th><th>IP</th><th>设备</th><th>注册时间</th><th></th></tr></thead><tbody>
+        ${uj.users.map(u=>`<tr>
+          <td><b>${esc(u.username)}</b></td>
+          <td>${u.is_admin?'<span style="color:#c0392b">是</span>':'否'}</td>
+          <td>${u.post_count||0}</td>
+          <td class="mono">${esc(u.created_ip||'-')}</td>
+          <td class="muted">${esc(u.device||'-')}</td>
+          <td class="muted">${fmt(u.created_at)}</td>
+          <td style="white-space:nowrap">
+            <button class="btn" data-admin="${esc(u.id)}" data-val="${u.is_admin?'0':'1'}">${u.is_admin?'取消管理':'设为管理'}</button>
+            <button class="btn red" data-del="${esc(u.id)}" data-name="${esc(u.username)}">删除</button>
+          </td>
+        </tr>`).join('')}</tbody></table>` : '<div class="center">暂无用户</div>';
+      document.querySelectorAll('[data-admin]').forEach(b=>b.onclick=()=>setAdmin(b.dataset.admin, b.dataset.val==='1'));
+      document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>delUser(b.dataset.del, b.dataset.name));
+    }catch(e){ $('userBox').innerHTML = `<div class="center">${esc(e.message)}</div>`; }
+
     $('regBox').innerHTML = j.regStats.length ? `<table>
       <thead><tr><th>IP</th><th>注册次数</th><th>设备</th><th>最近</th><th></th></tr></thead><tbody>
       ${j.regStats.map(r=>`<tr>
@@ -132,6 +157,17 @@ async function load(){
     box.innerHTML=`<div class="center">${esc(e.message)}<br><br>需要管理员权限，请先在论坛登录管理员账号。</div>`;
     $('blkBox').innerHTML=''; $('visBox').innerHTML='';
   }
+}
+
+async function setAdmin(id,value){
+  try{ await api('',{method:'POST',body:{action:'set_admin',id,value}}); toast('已更新'); load(); }
+  catch(e){ toast(e.message); }
+}
+async function delUser(id,name){
+  if(!confirm(`确定删除账号「${name}」？
+删除后该用户会立即被踢下线，帖子保留。`)) return;
+  try{ await api('',{method:'POST',body:{action:'delete_user',id}}); toast('已删除并踢下线'); load(); }
+  catch(e){ toast(e.message); }
 }
 
 async function blacklist(ip,value,reason){
