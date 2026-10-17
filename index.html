@@ -611,6 +611,60 @@ $('topSearch').addEventListener('keydown',e=>{ if(e.key==='Enter') $('topSearchB
 (async ()=>{ await validateSession(); renderTop(); await loadBoards(); route(); })();
 </script>
 <script>
+/* ===== 隐私说明弹窗：点空白、点叉、点按钮都可关闭 ===== */
+(function(){
+  var KEY = 'privacy_ack_v1';
+  if (localStorage.getItem(KEY)) return;
+  var css = document.createElement('style');
+  css.textContent = `
+  #pvMask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9999}
+  #pvBox{background:#fff;color:#333;width:100%;max-width:460px;max-height:80vh;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,.25);display:flex;flex-direction:column;overflow:hidden;font-family:-apple-system,"PingFang SC","Microsoft YaHei",Arial,sans-serif}
+  #pvHd{background:#2b6cb0;color:#fff;padding:11px 14px;font-size:15px;font-weight:700;display:flex;align-items:center}
+  #pvX{margin-left:auto;background:none;border:0;color:#fff;font-size:20px;line-height:1;cursor:pointer;padding:0 4px;opacity:.9}
+  #pvX:hover{opacity:1}
+  #pvBd{padding:14px 16px;overflow-y:auto;font-size:13.5px;line-height:1.75}
+  #pvBd p{margin-bottom:8px}
+  #pvBd .k{color:#2b6cb0;font-weight:700}
+  #pvFt{padding:10px 14px 14px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid #eef2f6}
+  #pvFt a,#pvFt button{border:0;border-radius:4px;padding:8px 14px;font-size:13px;cursor:pointer;text-decoration:none;display:inline-block}
+  #pvMore{background:#e6ebf1;color:#333}
+  #pvOk{background:#2b6cb0;color:#fff}
+  `;
+  document.head.appendChild(css);
+
+  var mask = document.createElement('div'); mask.id='pvMask';
+  mask.innerHTML = `
+    <div id="pvBox">
+      <div id="pvHd"><span>🔒 隐私说明</span><button id="pvX" aria-label="关闭">×</button></div>
+      <div id="pvBd">
+        <p>欢迎使用本站。在开始前，请了解我们如何处理你的信息：</p>
+        <p><span class="k">收集内容</span>：用户名、密码（仅保存加盐哈希，不存明文）、IP 地址、设备型号、访问页面与时间。</p>
+        <p><span class="k">用途</span>：账号登录、安全风控（防刷、防批量注册、防爆破）、访问统计。</p>
+        <p><span class="k">可见范围</span>：普通用户看不到他人的 IP 与设备信息，仅管理员在后台可见，不对外出售或共享。</p>
+        <p><span class="k">AI 小智</span>：你输入的对话内容会发送给第三方 AI 服务商以生成回复，请勿输入密码、身份证号等敏感信息；本站不保存对话正文。</p>
+        <p><span class="k">你的权利</span>：可随时修改资料，或联系管理员删除账号（删除后立即踢下线）。</p>
+        <p style="color:#8a95a1">继续使用即表示你已知悉上述内容。</p>
+      </div>
+      <div id="pvFt">
+        <a id="pvMore" href="privacy.html" target="_blank">查看完整说明</a>
+        <button id="pvOk">我知道了</button>
+      </div>
+    </div>`;
+  document.body.appendChild(mask);
+
+  function close(ack){
+    if (ack) { try{ localStorage.setItem(KEY,'1'); }catch(e){} }
+    mask.remove();
+  }
+  document.getElementById('pvX').onclick = function(e){ e.stopPropagation(); close(true); };
+  document.getElementById('pvOk').onclick = function(e){ e.stopPropagation(); close(true); };
+  // 点空白处关闭
+  mask.addEventListener('click', function(e){ if (e.target === mask) close(true); });
+  // 点内容区不关
+  document.getElementById('pvBox').addEventListener('click', function(e){ e.stopPropagation(); });
+})();
+</script>
+<script>
 (function(){try{
   var t=localStorage.getItem('forum_token')||'';
   var h={'Content-Type':'application/json'};
