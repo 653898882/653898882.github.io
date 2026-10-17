@@ -28,10 +28,11 @@ input[type=range]{width:120px;vertical-align:middle}
 .drop{border:1px dashed #a9b8c9;border-radius:5px;padding:16px;text-align:center;color:#7a8a99;cursor:pointer}
 .drop:hover,.drop.on{border-color:#2b6cb0;background:#f4f8fd;color:#2b6cb0}
 .stage{background:#fff;border:1px solid #cfd8e3;border-radius:5px;padding:6px;display:flex;justify-content:center;overflow:hidden}
+pre{font-family:"Courier New",Consolas,monospace;white-space:pre;margin:0;color:#2b3a49;letter-spacing:0;line-height:1.05;font-size:9px}
 canvas{display:block;max-width:100%;height:auto}
 .stats{font-size:12px;color:#8a95a1;margin-top:6px}
 .hint{font-size:12px;color:#8a95a1}
-.hidden{display:none}
+.hidden{display:none!important}
 video{display:none}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#333;color:#fff;padding:7px 16px;border-radius:4px;font-size:13px;opacity:0;transition:.2s;pointer-events:none;z-index:9}
 .toast.show{opacity:.95}
@@ -59,8 +60,8 @@ video{display:none}
       <div class="row">
         <label class="f">字符风格
           <select id="preset">
-            <option value="faithful">忠实原版（0/1 · .- · 空格）</option>
-            <option value="ramp" selected>高清晰（ .:-=+*#%@ ）</option>
+            <option value="faithful" selected>忠实原版（0/1 · .- · 空格）</option>
+            <option value="ramp">高清晰（ .:-=+*#%@ ）</option>
             <option value="block">方块（ ░▒▓█ ）</option>
           </select>
         </label>
@@ -70,11 +71,19 @@ video{display:none}
         <label class="f">间隔 <span id="speedV">60</span> ms
           <input type="range" id="speed" min="20" max="300" step="10" value="60">
         </label>
-        <label class="f">彩色
-          <select id="color"><option value="0">黑白</option><option value="1" selected>彩色</option></select>
-        </label>
         <label class="f">反色
           <select id="invert"><option value="0">否</option><option value="1">是</option></select>
+        </label>
+        <label class="f">彩色
+          <select id="color"><option value="0" selected>黑白（文字）</option><option value="1">彩色（画布）</option></select>
+        </label>
+      </div>
+      <div class="row">
+        <label class="f">大小
+          <select id="autosize"><option value="1" selected>自动适应</option><option value="0">手动</option></select>
+        </label>
+        <label class="f">字号 <span id="fsV">自动</span>
+          <input type="range" id="fs" min="3" max="24" step="1" value="10">
         </label>
       </div>
       <div class="row">
@@ -82,14 +91,14 @@ video{display:none}
         <button class="btn gray" id="txtBtn">导出 TXT</button>
         <button class="btn green" id="gifBtn">录制 GIF（约 2 秒）</button>
       </div>
-      <div class="hint" style="margin-top:8px">画面已自动适应屏幕宽度，无需左右滑动。</div>
+      <div class="hint" style="margin-top:8px">默认按原版方式输出纯文字；「自动适应」会自动算字号让整幅一屏放下。</div>
     </div>
   </div>
 
   <div class="panel">
     <div class="panel-hd">3. 输出</div>
     <div class="panel-bd">
-      <div class="stage"><canvas id="cv" width="320" height="200"></canvas></div>
+      <div class="stage"><pre id="out">等待素材…</pre><canvas id="cv" class="hidden" width="320" height="200"></canvas></div>
       <div class="stats" id="stats"></div>
     </div>
   </div>
@@ -102,103 +111,107 @@ video{display:none}
 import { parseGIF, decompressFrames } from 'https://cdn.jsdelivr.net/npm/gifuct-js@2.1.2/+esm';
 
 const $ = id => document.getElementById(id);
-const cv = $('cv');
-const stage = document.querySelector('.stage');
-let timer = null, rafId = null;
-let mode = 'none';
-let gifFrames = null, gifW = 0, gifH = 0, gifIndex = 0;
-let imgData = null;
-let camStream = null;
-let lastGrid = null;
-const video = $('vid'), vCanvas = document.createElement('canvas'), vCtx = vCanvas.getContext('2d', {willReadFrequently:true});
+const pre = $('out'), cv = $('cv'), stage = document.querySelector('.stage');
+let timer=null, rafId=null, mode='none';
+let gifFrames=null, gifW=0, gifH=0, gifIndex=0;
+let imgData=null, camStream=null, lastGrid=null;
+const video=$('vid'), vCanvas=document.createElement('canvas'), vCtx=vCanvas.getContext('2d',{willReadFrequently:true});
 
-const PRESETS = {
-  faithful: { type:'levels', levels: [["0","1"],[".","-"],[" "]] },
-  ramp:     { type:'ramp', ramp: " .:-=+*#%@" },
-  block:    { type:'ramp', ramp: " ░▒▓█" },
+const PRESETS={
+  faithful:{type:'levels',levels:[["0","1"],[".","-"],[" "]]},
+  ramp:{type:'ramp',ramp:" .:-=+*#%@"},
+  block:{type:'ramp',ramp:" ░▒▓█"},
 };
+const colorOn=()=>$('color').value==='1';
 
-function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1600); }
-function pickChar(lum, p){
-  if(p.type==='levels'){
-    const L=p.levels, idx=Math.min(L.length-1, Math.floor(lum/255*L.length));
-    const arr=L[idx]; return arr[Math.floor(Math.random()*arr.length)];
-  }
-  const r=p.ramp, idx=Math.min(r.length-1, Math.floor(lum/255*(r.length-1)));
-  return r[idx];
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1600);}
+function pickChar(lum,p){
+  if(p.type==='levels'){const L=p.levels,idx=Math.min(L.length-1,Math.floor(lum/255*L.length));const a=L[idx];return a[Math.floor(Math.random()*a.length)];}
+  const r=p.ramp,idx=Math.min(r.length-1,Math.floor(lum/255*(r.length-1)));return r[idx];
 }
 
-// 像素 -> 字符网格 + 颜色
 function sampleGrid(data,w,h){
   const step=+$('step').value, preset=PRESETS[$('preset').value], inv=$('invert').value==='1';
   const cols=Math.ceil(w/step), rows=Math.ceil(h/step);
   const chars=[], colors=[];
-  for(let ry=0; ry<rows; ry++){
-    const cr=[], cc=[];
-    const y=Math.min(h-1, ry*step);
-    for(let rx=0; rx<cols; rx++){
-      const x=Math.min(w-1, rx*step);
-      const i=(y*w+x)*4;
-      let r=data[i], g=data[i+1], b=data[i+2];
-      let lum=r*0.299+g*0.587+b*0.114;
-      if(inv) lum=255-lum;
-      cr.push(pickChar(lum,preset));
-      cc.push([r,g,b]);
+  for(let ry=0;ry<rows;ry++){
+    const cr=[],cc=[]; const y=Math.min(h-1,ry*step);
+    for(let rx=0;rx<cols;rx++){
+      const x=Math.min(w-1,rx*step); const i=(y*w+x)*4;
+      const r=data[i],g=data[i+1],b=data[i+2];
+      let lum=r*0.299+g*0.587+b*0.114; if(inv) lum=255-lum;
+      cr.push(pickChar(lum,preset)); cc.push([r,g,b]);
     }
     chars.push(cr); colors.push(cc);
   }
-  return {cols, rows, chars, colors};
+  return {cols,rows,chars,colors};
 }
 
-// 画到画布：自动适应宽度/高度，无需滚动
-function draw(grid){
-  lastGrid = grid;
-  const colorOn = $('color').value==='1';
-  const availW = Math.max(120, stage.clientWidth - 12);
-  const maxH = Math.max(160, Math.round(window.innerHeight*0.62));
-  let cellW = availW / grid.cols;
-  let cellH = cellW / 0.6;
-  if(grid.rows*cellH > maxH){ const s = maxH/(grid.rows*cellH); cellW*=s; cellH*=s; }
-  const W = Math.max(20, Math.round(grid.cols*cellW));
-  const H = Math.max(20, Math.round(grid.rows*cellH));
-  cv.width = W; cv.height = H;
-  cv.style.width = W+'px'; cv.style.height = H+'px';
-  const ctx = cv.getContext('2d');
-  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,W,H);
-  ctx.textBaseline = 'top';
-  const fs = cellH*0.96;
-  ctx.font = `${fs}px "Courier New",Consolas,monospace`;
-  for(let y=0; y<grid.rows; y++){
-    for(let x=0; x<grid.cols; x++){
-      const ch = grid.chars[y][x];
-      if(ch===' ') continue;
-      ctx.fillStyle = colorOn ? `rgb(${grid.colors[y][x][0]},${grid.colors[y][x][1]},${grid.colors[y][x][2]})` : '#33404d';
-      ctx.fillText(ch, x*cellW, y*cellH);
-    }
+// ---------- 文字输出（原版方式） ----------
+function drawText(grid){
+  const auto=$('autosize').value==='1';
+  let fs;
+  if(auto){
+    const availW=Math.max(80, stage.clientWidth-14);
+    const maxH=Math.max(120, Math.round(window.innerHeight*0.62));
+    const byW=availW/Math.max(1,grid.cols)/0.6;   // 等宽字符宽≈0.6em
+    const byH=maxH/Math.max(1,grid.rows)/1.05;
+    fs=Math.min(byW,byH);
+    $('fs').value=Math.max(3,Math.min(24,Math.round(fs)));
+    $('fsV').textContent='自动 '+Math.max(3,Math.min(24,Math.round(fs)))+'px';
+  }else{
+    fs=+$('fs').value; $('fsV').textContent=fs+'px';
   }
-  $('stats').textContent = `字符网格 ${grid.cols}×${grid.rows} · 画布 ${W}×${H}`;
-  if(rec.on) captureForRecord();
+  fs=Math.max(2,Math.min(32,fs));
+  pre.style.fontSize=fs+'px';
+  pre.style.lineHeight='1.05';
+  pre.textContent=grid.chars.map(r=>r.join('')).join('\n');
+  $('stats').textContent=`字符网格 ${grid.cols}×${grid.rows} · 字号 ${fs.toFixed(1)}px`;
 }
 
-function renderSource(data,w,h){ draw(sampleGrid(data,w,h)); }
+// ---------- 画布输出（彩色） ----------
+function drawCanvas(grid){
+  const availW=Math.max(80, stage.clientWidth-14);
+  const maxH=Math.max(120, Math.round(window.innerHeight*0.62));
+  let cellW=availW/grid.cols, cellH=cellW/0.6;
+  if(grid.rows*cellH>maxH){ const s=maxH/(grid.rows*cellH); cellW*=s; cellH*=s; }
+  const W=Math.max(20,Math.round(grid.cols*cellW)), H=Math.max(20,Math.round(grid.rows*cellH));
+  cv.width=W; cv.height=H; cv.style.width=W+'px'; cv.style.height=H+'px';
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+  ctx.textBaseline='top'; ctx.font=`${cellH*0.96}px "Courier New",Consolas,monospace`;
+  for(let y=0;y<grid.rows;y++)for(let x=0;x<grid.cols;x++){
+    const ch=grid.chars[y][x]; if(ch===' ')continue;
+    const c=grid.colors[y][x];
+    ctx.fillStyle=`rgb(${c[0]},${c[1]},${c[2]})`;
+    ctx.fillText(ch, x*cellW, y*cellH);
+  }
+  $('stats').textContent=`字符网格 ${grid.cols}×${grid.rows} · 画布 ${W}×${H}`;
+}
 
-// ---------- 图片 ----------
+function render(grid){
+  lastGrid=grid;
+  if(colorOn()){
+    pre.classList.add('hidden'); cv.classList.remove('hidden'); drawCanvas(grid);
+  }else{
+    cv.classList.add('hidden'); pre.classList.remove('hidden'); drawText(grid);
+  }
+  if(rec.on) captureForRecord(grid);
+}
+function renderSource(data,w,h){ render(sampleGrid(data,w,h)); }
+
+// ---------- 来源 ----------
 function setupImage(img){
   const c=document.createElement('canvas'); c.width=img.naturalWidth||img.width; c.height=img.naturalHeight||img.height;
   const cx=c.getContext('2d',{willReadFrequently:true}); cx.drawImage(img,0,0);
   imgData={data:cx.getImageData(0,0,c.width,c.height).data,w:c.width,h:c.height};
   mode='image'; clearAll(); renderSource(imgData.data,imgData.w,imgData.h);
 }
-
-// ---------- GIF ----------
 async function setupGif(file){
-  const buff=await file.arrayBuffer();
-  const gif=parseGIF(buff);
-  gifW=gif.lsd.width; gifH=gif.lsd.height;
-  gifFrames=[];
+  const buff=await file.arrayBuffer(); const gif=parseGIF(buff);
+  gifW=gif.lsd.width; gifH=gif.lsd.height; gifFrames=[];
   decompressFrames(gif,true).forEach(f=>gifFrames.push({patch:f.patch,dw:f.dims.width,dh:f.dims.height}));
-  mode='gif'; gifIndex=0; clearAll();
-  drawGifFrame(0);
+  mode='gif'; gifIndex=0; clearAll(); drawGifFrame(0);
   timer=setInterval(()=>{ if(!gifFrames.length)return; gifIndex=(gifIndex+1)%gifFrames.length; drawGifFrame(gifIndex); }, Math.max(20,+$('speed').value));
 }
 function drawGifFrame(i){
@@ -206,37 +219,30 @@ function drawGifFrame(i){
   const full=document.createElement('canvas'); full.width=gifW; full.height=gifH;
   const fx=full.getContext('2d',{willReadFrequently:true});
   fx.putImageData(new ImageData(f.patch,f.dw,f.dh),0,0);
-  renderSource(fx.getImageData(0,0,gifW,gifH).data, gifW, gifH);
+  renderSource(fx.getImageData(0,0,gifW,gifH).data,gifW,gifH);
 }
-
-// ---------- 视频 / 摄像头 ----------
 function startVideoLoop(){
   mode='video';
   const loop=()=>{
-    if(mode!=='video') return;
+    if(mode!=='video')return;
     if(video.videoWidth){
-      if(vCanvas.width!==video.videoWidth){ vCanvas.width=video.videoWidth; vCanvas.height=video.videoHeight; }
+      if(vCanvas.width!==video.videoWidth){vCanvas.width=video.videoWidth;vCanvas.height=video.videoHeight;}
       vCtx.drawImage(video,0,0,vCanvas.width,vCanvas.height);
-      renderSource(vCtx.getImageData(0,0,vCanvas.width,vCanvas.height).data, vCanvas.width, vCanvas.height);
+      renderSource(vCtx.getImageData(0,0,vCanvas.width,vCanvas.height).data,vCanvas.width,vCanvas.height);
     }
-    rafId=setTimeout(loop, Math.max(20,+$('speed').value));
+    rafId=setTimeout(loop,Math.max(20,+$('speed').value));
   };
   loop();
 }
-function setupVideo(file){
-  stopStream(); video.srcObject=null; video.src=URL.createObjectURL(file); video.play().catch(()=>{});
-  clearAll(); startVideoLoop();
-}
+function setupVideo(file){ stopStream(); video.srcObject=null; video.src=URL.createObjectURL(file); video.play().catch(()=>{}); clearAll(); startVideoLoop(); }
 async function useCamera(){
   try{
-    clearAll();
-    camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+    clearAll(); camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
     video.srcObject=camStream; video.src=null; await video.play();
     $('fileInfo').textContent='摄像头实时'; startVideoLoop(); toast('摄像头已开启');
   }catch(e){ toast('无法打开摄像头：'+e.message); }
 }
-function stopStream(){ if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; } }
-
+function stopStream(){ if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;} }
 function clearAll(){ if(timer){clearInterval(timer);timer=null;} if(rafId){clearTimeout(rafId);rafId=null;} }
 
 // ---------- 文件 ----------
@@ -259,71 +265,68 @@ async function handleFile(file){
 $('txtBtn').onclick=()=>{
   if(!lastGrid){ toast('还没有画面'); return; }
   const text=lastGrid.chars.map(r=>r.join('')).join('\n');
-  download(new Blob([text],{type:'text/plain;charset=utf-8'}), 'ascii.txt');
+  download(new Blob([text],{type:'text/plain;charset=utf-8'}),'ascii.txt');
   toast('已导出 TXT');
 };
 
 // ---------- 录制 GIF ----------
-const rec={on:false, frames:[], target:0, w:0, h:0};
-function captureForRecord(){
-  // 统一缩放到最大宽 420，节省内存
+const rec={on:false,frames:[],target:0};
+function captureForRecord(grid){
   const maxW=420;
-  const scale=Math.min(1, maxW/cv.width);
-  const w=Math.max(1,Math.round(cv.width*scale)), h=Math.max(1,Math.round(cv.height*scale));
-  const off=document.createElement('canvas'); off.width=w; off.height=h;
-  const ox=off.getContext('2d'); ox.fillStyle='#fff'; ox.fillRect(0,0,w,h);
-  ox.drawImage(cv,0,0,w,h);
-  rec.frames.push({data: ox.getContext('2d').getImageData(0,0,w,h).data, w, h});
+  const cellW=maxW/grid.cols, cellH=cellW/0.6;
+  const W=Math.max(16,Math.round(grid.cols*cellW)), H=Math.max(16,Math.round(grid.rows*cellH));
+  const off=document.createElement('canvas'); off.width=W; off.height=H;
+  const ox=off.getContext('2d'); ox.fillStyle='#fff'; ox.fillRect(0,0,W,H);
+  ox.textBaseline='top'; ox.font=`${cellH*0.96}px "Courier New",Consolas,monospace`;
+  for(let y=0;y<grid.rows;y++)for(let x=0;x<grid.cols;x++){
+    const ch=grid.chars[y][x]; if(ch===' ')continue;
+    const c=grid.colors[y][x];
+    ox.fillStyle=colorOn()?`rgb(${c[0]},${c[1]},${c[2]})`:'#2b3a49';
+    ox.fillText(ch, x*cellW, y*cellH);
+  }
+  rec.frames.push({data: ox.getContext('2d').getImageData(0,0,W,H).data, w:W, h:H});
   if(rec.frames.length>=rec.target){ rec.on=false; encodeGif(); }
 }
 async function encodeGif(){
   try{
     $('gifBtn').disabled=true; toast('正在生成 GIF…');
     const { GIFEncoder, quantize, applyPalette } = await import('https://cdn.jsdelivr.net/npm/gifenc@1.0.3/+esm');
-    const gif=GIFEncoder();
-    const delay=Math.max(20,+$('speed').value);
+    const gif=GIFEncoder(); const delay=Math.max(20,+$('speed').value);
     const {w,h}=rec.frames[0];
-    for(const f of rec.frames){
-      const palette=quantize(f.data,256);
-      const idx=applyPalette(f.data,palette);
-      gif.writeFrame(idx,w,h,{palette,delay});
-    }
+    for(const f of rec.frames){ const pal=quantize(f.data,256); const idx=applyPalette(f.data,pal); gif.writeFrame(idx,w,h,{palette:pal,delay}); }
     gif.finish();
-    download(new Blob([gif.bytes()],{type:'image/gif'}), 'ascii.gif');
-    toast('GIF 已生成');
+    download(new Blob([gif.bytes()],{type:'image/gif'}),'ascii.gif'); toast('GIF 已生成');
   }catch(e){ toast('生成失败：'+e.message); }
   finally{ rec.frames=[]; $('gifBtn').disabled=false; }
 }
 $('gifBtn').onclick=()=>{
   if(!lastGrid){ toast('还没有画面'); return; }
-  rec.frames=[]; rec.target=Math.max(4, Math.round(2000/Math.max(20,+$('speed').value)));
-  rec.on=true; toast('录制中…（约 2 秒）');
-  if(mode==='image'){ // 静态图也录指定帧数
-    for(let i=0;i<rec.target;i++) setTimeout(captureForRecord, i*Math.max(20,+$('speed').value));
-    if(rec.frames.length>=rec.target){ rec.on=false; encodeGif(); }
-  }
+  rec.frames=[]; rec.target=Math.max(4,Math.round(2000/Math.max(20,+$('speed').value))); rec.on=true; toast('录制中…（约 2 秒）');
+  if(mode==='image'){ for(let i=0;i<rec.target;i++) setTimeout(()=>{ if(rec.on&&lastGrid) captureForRecord(lastGrid); }, i*Math.max(20,+$('speed').value)); }
 };
-
-function download(blob, name){
+function download(blob,name){
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
-  document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1000);
+  document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
 }
 
-// ---------- 参数联动 ----------
+// ---------- 参数 ----------
 function rerender(){
   if(mode==='image'&&imgData) renderSource(imgData.data,imgData.w,imgData.h);
   else if(mode==='gif'&&gifFrames) drawGifFrame(gifIndex);
+  else if(lastGrid) render(lastGrid);
 }
 $('step').oninput=e=>{ $('stepV').textContent=e.target.value; rerender(); };
 $('speed').oninput=e=>{ $('speedV').textContent=e.target.value;
   if(mode==='gif'&&gifFrames){ clearAll(); timer=setInterval(()=>{ gifIndex=(gifIndex+1)%gifFrames.length; drawGifFrame(gifIndex); }, Math.max(20,+e.target.value)); }
 };
 $('preset').onchange=rerender;
-$('color').onchange=rerender;
 $('invert').onchange=rerender;
+$('color').onchange=rerender;
+$('fs').oninput=()=>{ if($('autosize').value==='1'){ $('autosize').value='0'; } rerender(); };
+$('autosize').onchange=rerender;
 $('camBtn').onclick=useCamera;
-$('stopBtn').onclick=()=>{ clearAll(); mode='none'; if(video.pause) video.pause(); stopStream(); toast('已停止'); };
-window.addEventListener('resize', ()=>{ if(lastGrid) draw(lastGrid); });
+$('stopBtn').onclick=()=>{ clearAll(); mode='none'; if(video.pause)video.pause(); stopStream(); toast('已停止'); };
+window.addEventListener('resize',()=>{ if(lastGrid) render(lastGrid); });
 </script>
 </body>
 </html>
