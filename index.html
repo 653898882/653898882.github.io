@@ -186,9 +186,13 @@ function renderNav(active){
   $('nav').innerHTML = `<a href="#/" class="${active==='home'?'on':''}">首页</a>` +
     boards.map(b=>`<a href="#/b/${b.slug}" class="${active===b.slug?'on':''}">${esc(b.name)}</a>`).join('');
 }
-async function loadBoards(){
-  if(boards.length) return boards;
-  try{ const j = await req('?action=boards'); boards = j.boards||[]; }catch(e){}
+async function loadBoards(force){
+  if(!force && boards.length) return boards;
+  const now = Date.now();
+  if(!force){
+    try{ const raw=localStorage.getItem('forum_boards'); if(raw){ const c=JSON.parse(raw); if(now-c.t<60000 && c.d){ boards=c.d; return boards; } } }catch(e){}
+  }
+  try{ const j = await req('?action=boards'); boards = j.boards||[]; localStorage.setItem('forum_boards', JSON.stringify({t:now,d:boards})); }catch(e){}
   return boards;
 }
 
@@ -216,8 +220,7 @@ window.addEventListener('hashchange', route);
 
 // ---------------- 首页：版块列表 ----------------
 async function home(){
-  const j = await req('?action=boards');
-  boards = j.boards||[];
+  await loadBoards(true);
   renderNav('home');
   const rows = boards.map(b=>`
     <tr>
