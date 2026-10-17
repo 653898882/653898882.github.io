@@ -144,6 +144,37 @@ a{color:inherit;text-decoration:none}
   .wrap{margin-bottom:80px}
   .top .in{height:52px}
 }
+
+/* 头衔 / 任务 / 表情 / 商店 */
+.tchip{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px;color:#fff;margin-left:6px;vertical-align:1px}
+.reacts{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.rx{display:flex;align-items:center;gap:4px;border:1px solid var(--line);background:#fff;border-radius:20px;padding:4px 10px;font-size:12.5px;color:#7b8798;cursor:pointer;transition:.15s;font-family:inherit}
+.rx:active{transform:scale(.93)}
+.rx.on{background:#eef4ff;border-color:#bcd6ff;color:#2f6fe0;font-weight:700}
+.rx span:empty{display:none}
+.tasks{padding:4px 0}
+.task{display:flex;align-items:center;gap:9px;padding:10px 16px;border-bottom:1px solid #f5f8fc}
+.task:last-child{border-bottom:0}
+.task .ti{width:32px;height:32px;border-radius:11px;background:#eef4ff;color:#4f8cff;display:flex;align-items:center;justify-content:center;flex:none}
+.task.done .ti{background:#e8f8ef;color:#22c55e}
+.task .tn{flex:1;min-width:0}
+.task .tn b{font-size:12.5px;display:block}
+.task .tn span{font-size:11px;color:var(--mut)}
+.task .go{border:0;border-radius:14px;padding:5px 12px;font-size:12px;font-weight:800;cursor:pointer;background:linear-gradient(120deg,#ffb020,#ff8a3d);color:#fff;font-family:inherit}
+.task .go:disabled{background:#eef2f8;color:#a9b5c4;cursor:default}
+.modal{position:fixed;inset:0;background:#22314a66;z-index:70;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:#fff;width:100%;max-width:520px;max-height:78vh;border-radius:22px 22px 0 0;padding:18px 16px 24px;overflow-y:auto;animation:up .28s cubic-bezier(.2,.9,.3,1)}
+@keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+.sheet h3{font-size:16px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:7px}
+.sheet .pts{font-size:12.5px;color:var(--mut);margin-bottom:14px}
+.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.titem{border:1px solid var(--line);border-radius:16px;padding:12px;text-align:center}
+.titem .nm{font-weight:800;font-size:13.5px}
+.titem .cost{font-size:11.5px;color:var(--mut);margin:5px 0 9px}
+.titem .buy{border:0;border-radius:16px;padding:7px 0;width:100%;font-size:12.5px;font-weight:800;cursor:pointer;background:linear-gradient(120deg,var(--g1),var(--g2));color:#fff;font-family:inherit}
+.titem .buy.own{background:#eef2f8;color:#8f9dae}
+.exp-pop{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:linear-gradient(120deg,#ffb020,#ff8a3d);color:#fff;font-weight:800;padding:10px 22px;border-radius:24px;z-index:95;animation:popup 1.1s ease forwards;pointer-events:none;box-shadow:0 8px 24px rgba(255,150,60,.4)}
+@keyframes popup{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}25%{opacity:1;transform:translate(-50%,-60%) scale(1.05)}75%{opacity:1;transform:translate(-50%,-75%) scale(1)}100%{opacity:0;transform:translate(-50%,-110%) scale(.95)}}
 </style>
 </head>
 <body>
@@ -187,6 +218,10 @@ a{color:inherit;text-decoration:none}
   <div class="side">
     <div class="card" id="meCard"></div>
     <div class="card">
+      <div class="card-hd" style="padding-bottom:4px">每日任务</div>
+      <div class="tasks" id="taskBox"><div class="empty" style="padding:18px">加载中…</div></div>
+    </div>
+    <div class="card">
       <div class="card-hd" style="padding-bottom:6px">推荐关注</div>
       <div id="sugBox"><div class="empty" style="padding:24px">加载中…</div></div>
     </div>
@@ -199,6 +234,11 @@ a{color:inherit;text-decoration:none}
   <div class="dhd"><span>通知</span><button class="x" id="drawerX"></button></div>
   <div class="dbd" id="notifBox"><div class="empty">加载中…</div></div>
 </div>
+<div class="modal hide" id="shopModal"><div class="sheet">
+  <h3 id="shopTitle">头衔商店</h3>
+  <div class="pts" id="shopPts"></div>
+  <div class="tgrid" id="shopGrid"></div>
+</div></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -209,6 +249,17 @@ const token = () => localStorage.getItem('forum_token') || '';
 let me = (()=>{ try{ return JSON.parse(localStorage.getItem('forum_user')||'null'); }catch(e){ return null; } })();
 let page = 1, totalPages = 1, pendingImages = [], unread = 0, myStreak = 0, myPoints = 0;
 
+const REACTIONS = [
+  {k:'love', ic:'heart', t:'喜欢'}, {k:'haha', ic:'haha', t:'哈哈'},
+  {k:'wow', ic:'wow', t:'哇'}, {k:'cool', ic:'cool', t:'酷'},
+  {k:'six', ic:'six', t:'666'}, {k:'sad', ic:'sad', t:'难过'}
+];
+const TCOLOR = {'萌新':'#9aa7b6','夜猫子':'#22c55e','段子手':'#fb923c','活跃分子':'#4f8cff','学霸':'#35d0ba','人气王':'#ff5d73','大佬':'#ffb020','传说':'#a78bfa'};
+function titleChip(name){ return name ? `<span class="tchip" style="background:${TCOLOR[name]||'#8fa0b3'}">${esc(name)}</span>` : ''; }
+function floatExp(text){
+  const d = document.createElement('div'); d.className='exp-pop'; d.textContent = text;
+  document.body.appendChild(d); setTimeout(()=>d.remove(), 1200);
+}
 const PALETTE = [['#4f8cff','#35d0ba'],['#ff8f70','#ff5d73'],['#a78bfa','#7c9dff'],['#fbbf24','#fb923c'],['#34d399','#22d3ee'],['#f472b6','#a78bfa']];
 function grad(name){ let h=0; for(const c of String(name||'?')) h=(h*31+c.charCodeAt(0))>>>0; const p=PALETTE[h%PALETTE.length]; return `linear-gradient(135deg,${p[0]},${p[1]})`; }
 function avatarHTML(u, size){
@@ -272,7 +323,7 @@ async function paintHero(){
       <div class="row1">
         ${avatarHTML(me, 52)}
         <div style="flex:1;min-width:0">
-          <div class="hi">${greet()}，${esc(me.username)}</div>
+          <div class="hi">${greet()}，${esc(me.username)}${titleChip(me.title_name)}</div>
           <div class="sub">今天也来分享点什么吧～</div>
         </div>
         <span class="lv">${icon('crown',{size:13,fill:true})} Lv.${lv}</span>
@@ -285,15 +336,18 @@ async function paintHero(){
         <span class="flame" style="color:#ff7a45">${icon('fire',{size:24,fill:true})}</span>
         <div class="t"><b>已连续签到 ${myStreak} 天</b><div>每天签到得经验，连签越多奖励越多</div></div>
         <button class="cbtn" id="checkinBtn">签到</button>
+        <button class="cbtn" id="shopBtn" style="background:linear-gradient(120deg,#a78bfa,#7c9dff);font-size:12px;padding:8px 14px">头衔</button>
       </div>
     </div>`;
+  if($('shopBtn')) $('shopBtn').onclick = openShop;
   $('checkinBtn').onclick = async ()=>{
     const b=$('checkinBtn'); b.disabled=true;
     try{
       const j = await api('',{method:'POST',body:{action:'checkin'}});
       if(j.already){ toast('今天已经签过啦'); b.textContent='已签到'; b.classList.add('done'); paintHero(); return; }
       toast(`签到成功 +${j.gained} 经验，连签 ${j.streak} 天`);
-      myStreak = j.streak; myPoints = j.points; paintHero();
+      floatExp('+'+j.gained+' 经验');
+      myStreak = j.streak; myPoints = j.points; paintHero(); loadTasks();
     }catch(e){ toast(e.message); b.disabled=false; }
   };
   // 侧栏我的卡
@@ -342,6 +396,68 @@ $('pubBtn').onclick = async ()=>{
   finally{ b.disabled=false; b.textContent='发布'; }
 };
 
+/* ---------- 每日任务 ---------- */
+let taskData = null;
+async function loadTasks(){
+  if(!me) { $('taskBox').innerHTML='<div class="empty" style="padding:18px">登录后可做任务</div>'; return; }
+  try{ taskData = await api('?action=tasks'); renderTasks(); }
+  catch(e){ $('taskBox').innerHTML='<div class="empty" style="padding:18px">'+esc(e.message)+'</div>'; }
+}
+function renderTasks(){
+  if(!taskData) return;
+  const {tasks, progress, claimed} = taskData;
+  const doneOf = t => t.key==='checkin' ? progress.checkin : t.key==='post' ? progress.posted : progress.likes >= t.need;
+  $('taskBox').innerHTML = tasks.map(t=>{
+    const done = doneOf(t), got = (claimed||[]).includes(t.key);
+    const label = t.key==='like' ? `${Math.min(progress.likes,t.need)}/${t.need}` : (done?'已完成':'未完成');
+    return `<div class="task ${done?'done':''}">
+      <div class="ti">${icon(t.icon||'spark',{size:16})}</div>
+      <div class="tn"><b>${esc(t.name)}</b><span>${label} · +${t.reward} 经验</span></div>
+      <button class="go" data-k="${t.key}" ${(done && !got)?'':'disabled'}>${got?'已领':(done?'领取':'进行中')}</button>
+    </div>`;
+  }).join('');
+  $('taskBox').querySelectorAll('.go').forEach(b=>b.onclick=()=>claimTask(b.dataset.k));
+}
+async function claimTask(k){
+  try{ const j = await api('',{method:'POST',body:{action:'claim_task',key:k}});
+    floatExp('+'+j.gained+' 经验'); toast('任务奖励已领取'); loadTasks(); paintHero();
+  }catch(e){ toast(e.message); }
+}
+
+/* ---------- 头衔商店 ---------- */
+async function openShop(){
+  if(!me) return toast('请先登录');
+  try{
+    const j = await api('?action=shop');
+    $('shopPts').textContent = '我的经验：' + j.points;
+    $('shopGrid').innerHTML = j.titles.map(t=>{
+      const own=(j.owned||[]).includes(t.id), cur=j.current===t.id;
+      return `<div class="titem">
+        <div class="nm" style="color:${t.color}">${esc(t.name)}</div>
+        <div class="cost">${t.cost===0?'免费':t.cost+' 经验'}</div>
+        <button class="buy ${own?'own':''}" data-id="${t.id}" ${own&&cur?'disabled':''}>${cur?'佩戴中':(own?'佩戴':'购买')}</button>
+      </div>`;
+    }).join('');
+    $('shopGrid').querySelectorAll('.buy').forEach(b=>b.onclick=()=>buyOrEquip(b.dataset.id));
+    $('shopModal').classList.remove('hide');
+  }catch(e){ toast(e.message); }
+}
+$('shopModal').onclick = e=>{ if(e.target.id==='shopModal') $('shopModal').classList.add('hide'); };
+async function buyOrEquip(id){
+  try{
+    const j = await api('',{method:'POST',body:{action:'buy_title',title_id:id}});
+    me.title_name = j.title.name; me.title_id = id; localStorage.setItem('forum_user',JSON.stringify(me));
+    floatExp('解锁「'+j.title.name+'」'); paintHero(); openShop(); toast('购买成功，已佩戴');
+  }catch(e){
+    if(/已经拥有/.test(e.message)){
+      try{ const j = await api('',{method:'POST',body:{action:'equip_title',title_id:id}});
+        me.title_name = j.title.name; me.title_id = id; localStorage.setItem('forum_user',JSON.stringify(me));
+        paintHero(); openShop(); toast('已佩戴「'+j.title.name+'」');
+      }catch(err){ toast(err.message); }
+    } else toast(e.message);
+  }
+}
+
 /* ---------- 动态流 ---------- */
 function skeleton(){
   return `<div class="sk"><div style="display:flex;gap:10px;align-items:center"><div class="l" style="width:42px;height:42px;border-radius:50%"></div><div style="flex:1"><div class="l" style="width:40%"></div><div class="l" style="width:25%;margin-top:7px"></div></div></div><div class="l" style="margin-top:14px"></div><div class="l" style="width:70%"></div></div>`;
@@ -371,18 +487,27 @@ function postCard(p){
     <div class="ph">
       ${avatarHTML(u)}
       <div style="flex:1;min-width:0">
-        <a class="pn" href="./?u=${encodeURIComponent(p.user_id||'')}">${esc(u.username||p.author)}</a>
+        <a class="pn" href="./?u=${encodeURIComponent(p.user_id||'')}">${esc(u.username||p.author)}</a>${titleChip(u.title_name)}
         <div class="pt">${relTime(p.created_at)}${p.kind==='topic'?' · 来自论坛':''}</div>
       </div>
     </div>
     <div class="pb">${esc(p.body)}</div>
     ${imgs}
+    ${reactRow(p)}
     <div class="pacts">
       <button class="like ${p.liked?'liked':''}" data-id="${p.id}">${icon('heart',{size:18,fill:!!p.liked})}<span>${p.likes||0}</span></button>
       <button data-goto="${p.id}">${icon('comment',{size:18})}<span>${p.reply_count||0}</span></button>
       <button data-share="${p.id}">${icon('repeat',{size:18})}<span>分享</span></button>
     </div>
   </div>`;
+}
+function reactRow(p){
+  const r = p.reactions || {counts:{}, mine:[]};
+  const mine = r.mine||[], counts = r.counts||{};
+  return `<div class="reacts" data-pid="${p.id}">` + REACTIONS.map(x=>{
+    const n = counts[x.k]||0, on = mine.includes(x.k);
+    return `<button class="rx ${on?'on':''}" data-k="${x.k}" title="${x.t}">${icon(x.ic,{size:17})}<span>${n>0?n:''}</span></button>`;
+  }).join('') + `</div>`;
 }
 function bindPosts(){
   document.querySelectorAll('.like').forEach(b=>b.onclick=async()=>{
@@ -392,6 +517,22 @@ function bindPosts(){
       b.classList.toggle('liked', j.liked);
       b.innerHTML = icon('heart',{size:18,fill:j.liked}) + `<span>${j.likes}</span>`;
     }catch(e){ toast(e.message); }
+  });
+  document.querySelectorAll('.reacts').forEach(box=>{
+    box.querySelectorAll('.rx').forEach(b=>b.onclick=async(e)=>{
+      e.stopPropagation();
+      if(!me) return toast('请先登录');
+      try{
+        const j = await api('',{method:'POST',body:{action:'react',post_id:box.dataset.pid,key:b.dataset.k}});
+        box.querySelectorAll('.rx').forEach(x=>{
+          const k=x.dataset.k, n=j.counts[k]||0;
+          x.querySelector('span').textContent = n>0?n:'';
+          x.classList.toggle('on', k===b.dataset.k ? j.active : x.classList.contains('on') && k!==b.dataset.k);
+        });
+        b.classList.toggle('on', j.active);
+        if(j.active) b.animate([{transform:'scale(1)'},{transform:'scale(1.35)'},{transform:'scale(1)'}],{duration:320});
+      }catch(err){ toast(err.message); }
+    });
   });
   document.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>location.href='./#/t/'+b.dataset.goto);
   document.querySelectorAll('[data-share]').forEach(b=>b.onclick=()=>{
@@ -447,7 +588,7 @@ $('mask').onclick = ()=>{ $('drawer').classList.remove('on'); $('mask').classLis
 $('drawerX').onclick = $('mask').onclick;
 
 /* 启动 */
-paintTop(); paintHero(); loadFeed(true); loadSuggest(); loadNotifs();
+paintTop(); paintHero(); loadFeed(true); loadSuggest(); loadNotifs(); loadTasks();
 setInterval(()=>{ if(me) loadNotifs(); }, 60000);
 </script>
 </body>
