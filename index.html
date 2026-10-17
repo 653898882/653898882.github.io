@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>论坛</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0d1117;--card:#161b22;--bd:#30363d;--tx:#e6edf3;--mut:#8b949e;--acc:#388bfd}
+body{font-family:-apple-system,"PingFang SC","Segoe UI",sans-serif;background:var(--bg);color:var(--tx);line-height:1.6}
+.wrap{max-width:820px;margin:0 auto;padding:20px 16px 80px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+h1{font-size:22px;cursor:pointer}
+h1:hover{color:var(--acc)}
+input,textarea,button{font-family:inherit;font-size:14px}
+input,textarea{width:100%;background:#0d1117;border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);outline:none}
+input:focus,textarea:focus{border-color:var(--acc)}
+textarea{resize:vertical;min-height:90px}
+button{background:var(--acc);border:0;border-radius:8px;padding:10px 16px;color:#fff;cursor:pointer;font-weight:600}
+button:hover{filter:brightness(1.1)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:12px}
+.post{cursor:pointer;transition:.15s}
+.post:hover{border-color:var(--acc)}
+.post h3{font-size:16px;margin-bottom:6px}
+.meta{font-size:12px;color:var(--mut)}
+.body{white-space:pre-wrap;word-break:break-word;margin:10px 0}
+.form{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;gap:10px;justify-content:flex-end}
+.hidden{display:none}
+.empty{color:var(--mut);text-align:center;padding:40px 0}
+.reply{border-left:3px solid var(--bd);padding-left:12px;margin-bottom:12px}
+.reply .body{margin:4px 0}
+.back{background:none;color:var(--mut);padding:6px 0;font-size:13px}
+.err{color:#f85149;font-size:13px;margin-top:8px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1f6feb;color:#fff;padding:8px 16px;border-radius:8px;font-size:13px;opacity:0;transition:.25s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 id="home">📋 论坛</h1>
+    <div class="nick"><input id="nick" placeholder="你的昵称" style="width:150px"></div>
+  </header>
+
+  <section id="listView">
+    <div class="card">
+      <div class="form">
+        <input id="newTitle" placeholder="标题" maxlength="120">
+        <input id="newAuthor" placeholder="昵称（会记住）" maxlength="30">
+        <textarea id="newBody" placeholder="内容…" maxlength="5000"></textarea>
+        <div class="row"><button id="postBtn">发布</button></div>
+        <div class="err" id="listErr"></div>
+      </div>
+    </div>
+    <div id="posts"></div>
+  </section>
+
+  <section id="detailView" class="hidden">
+    <button class="back" id="back">← 返回列表</button>
+    <div class="card" id="detailCard"></div>
+    <div class="card">
+      <div class="form">
+        <input id="replyAuthor" placeholder="昵称" maxlength="30">
+        <textarea id="replyBody" placeholder="回复…" maxlength="3000"></textarea>
+        <div class="row"><button id="replyBtn">回复</button></div>
+        <div class="err" id="replyErr"></div>
+      </div>
+    </div>
+    <div id="replies"></div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// 前端零密钥：只调用我们自己部署的 Edge Function
+const API = "https://jgwadmeqhzgzlkbbjcik.supabase.co/functions/v1/forum";
+
+const $ = id => document.getElementById(id);
+const store = {
+  get nick(){ return localStorage.getItem('forum_nick') || ''; },
+  set nick(v){ localStorage.setItem('forum_nick', v); }
+};
+let currentPost = null;
+
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = t => new Date(t).toLocaleString('zh-CN',{hour12:false});
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
+
+async function apiGet(params){
+  const u = API + (params ? '?' + new URLSearchParams(params) : '');
+  const r = await fetch(u);
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(j.error || ('HTTP '+r.status));
+  return j;
+}
+async function apiPost(body){
+  const r = await fetch(API, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(j.error || ('HTTP '+r.status));
+  return j;
+}
+
+if(store.nick){ $('newAuthor').value=store.nick; $('replyAuthor').value=store.nick; }
+
+async function loadPosts(){
+  const box=$('posts'); box.innerHTML='<div class="empty">加载中…</div>';
+  try{
+    const {posts} = await apiGet();
+    if(!posts.length){ box.innerHTML='<div class="empty">还没有帖子，来发第一帖吧</div>'; return; }
+    box.innerHTML=posts.map(p=>`
+      <div class="card post" data-id="${p.id}">
+        <h3>${esc(p.title)}</h3>
+        <div class="meta">${esc(p.author)} · ${fmt(p.created_at)}</div>
+        <div class="body">${esc((p.body||'').slice(0,160))}${(p.body||'').length>160?'…':''}</div>
+      </div>`).join('');
+    box.querySelectorAll('.post').forEach(el=>el.onclick=()=>openPost(el.dataset.id));
+  }catch(e){ box.innerHTML='<div class="empty">加载失败：'+esc(e.message)+'</div>'; }
+}
+
+async function openPost(id){
+  currentPost=id;
+  $('listView').classList.add('hidden');
+  $('detailView').classList.remove('hidden');
+  try{
+    const {post:p, replies} = await apiGet({post_id:id});
+    $('detailCard').innerHTML=`<h3>${esc(p.title)}</h3><div class="meta">${esc(p.author)} · ${fmt(p.created_at)}</div><div class="body">${esc(p.body)}</div>`;
+    renderReplies(replies);
+  }catch(e){ $('detailCard').innerHTML='<div class="err">加载失败：'+esc(e.message)+'</div>'; }
+}
+
+function renderReplies(data){
+  const box=$('replies');
+  if(!data.length){ box.innerHTML='<div class="empty">暂无回复</div>'; return; }
+  box.innerHTML=data.map(r=>`<div class="card reply"><div class="meta">${esc(r.author)} · ${fmt(r.created_at)}</div><div class="body">${esc(r.body)}</div></div>`).join('');
+}
+
+async function createPost(){
+  const title=$('newTitle').value.trim(), body=$('newBody').value.trim(), author=$('newAuthor').value.trim();
+  const err=$('listErr'); err.textContent='';
+  if(!title||!body||!author){ err.textContent='标题、内容、昵称都要填'; return; }
+  store.nick=author; $('postBtn').disabled=true;
+  try{ await apiPost({action:'post',title,body,author}); $('newTitle').value=''; $('newBody').value=''; toast('发布成功'); loadPosts(); }
+  catch(e){ err.textContent='发布失败：'+e.message; }
+  finally{ $('postBtn').disabled=false; }
+}
+
+async function createReply(){
+  const body=$('replyBody').value.trim(), author=$('replyAuthor').value.trim();
+  const err=$('replyErr'); err.textContent='';
+  if(!body||!author){ err.textContent='回复和昵称都要填'; return; }
+  store.nick=author; $('replyBtn').disabled=true;
+  try{ await apiPost({action:'reply',post_id:currentPost,body,author}); $('replyBody').value=''; toast('回复成功'); openPost(currentPost); }
+  catch(e){ err.textContent='回复失败：'+e.message; }
+  finally{ $('replyBtn').disabled=false; }
+}
+
+function goHome(){ currentPost=null; $('detailView').classList.add('hidden'); $('listView').classList.remove('hidden'); loadPosts(); }
+
+$('postBtn').onclick=createPost;
+$('replyBtn').onclick=createReply;
+$('back').onclick=goHome;
+$('home').onclick=goHome;
+$('nick').value=store.nick;
+$('nick').oninput=e=>{ store.nick=e.target.value; $('newAuthor').value=e.target.value; $('replyAuthor').value=e.target.value; };
+
+goHome();
+</script>
+</body>
+</html>
