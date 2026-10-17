@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://jgwadmeqhzgzlkbbjcik.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://jgwadmeqhzgzlkbbjcik.supabase.co">
 <title>私信与群聊</title>
-<script src="./lib/supabase.js"></script>
 <style>
 :root{color-scheme:light}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -127,7 +128,18 @@ const SB_URL = "https://jgwadmeqhzgzlkbbjcik.supabase.co";
 const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impnd2FkbWVxaHpnemxrYmJqY2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyMTQ1NzIsImV4cCI6MjEwNzc5MDU3Mn0.IE9tXL2umU3Icg7b7vxxcKuRj_x4As1GbQodA1e8hmo";
 
 const $ = id => document.getElementById(id);
-const sb = supabase.createClient(SB_URL, SB_ANON);
+let sb = null;
+function ensureSb(){
+  return new Promise((resolve, reject) => {
+    if (sb) return resolve(sb);
+    if (window.supabase) { sb = window.supabase.createClient(SB_URL, SB_ANON); return resolve(sb); }
+    const sc = document.createElement('script');
+    sc.src = './lib/supabase.js';
+    sc.onload = () => { sb = window.supabase.createClient(SB_URL, SB_ANON); resolve(sb); };
+    sc.onerror = () => reject(new Error('realtime 组件加载失败'));
+    document.head.appendChild(sc);
+  });
+}
 const token = () => localStorage.getItem('forum_token') || '';
 const me = (()=>{ try { return JSON.parse(localStorage.getItem('forum_user')||'null'); } catch(e){ return null; } })();
 
@@ -204,7 +216,7 @@ async function openConv(id){
     scrollBottom();
     await api('', {method:'POST', body:{action:'mark_read', conv_id:id}});
     const c2 = allConvs.find(x=>x.id===id); if(c2){ c2.unread=0; c2.mention=0; renderConvs(); }
-    subscribe(id, j.conv.secret);
+    subscribe(id, j.conv.secret).catch(()=>{});
   }catch(e){ toast(e.message); }
 }
 
@@ -226,8 +238,10 @@ function appendMsg(m, isRealtime){
 function scrollBottom(){ const b=$('msgs'); b.scrollTop = b.scrollHeight; }
 
 // ---------------- Realtime 真推送 ----------------
-function subscribe(convId, secret){
-  if(channel){ sb.removeChannel(channel); channel = null; }
+async function subscribe(convId, secret){
+  try{
+  if(channel && sb){ try{ await sb.removeChannel(channel); }catch(e){} channel = null; }
+  await ensureSb();
   channel = sb.channel('conv:'+convId+':'+secret, { config: { broadcast: { self: false } } });
   channel.on('broadcast', { event: 'msg' }, ({ payload }) => {
     if(!payload) return;
@@ -242,6 +256,7 @@ function subscribe(convId, secret){
     api('', {method:'POST', body:{action:'mark_read', conv_id:convId}}).catch(()=>{});
   });
   channel.subscribe((status)=>{ if(status==='SUBSCRIBED') console.log('realtime connected'); });
+  }catch(e){ console.warn('realtime 不可用，降级为手动刷新', e); }
 }
 
 // ---------------- 发送 ----------------
