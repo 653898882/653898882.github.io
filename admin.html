@@ -2,55 +2,92 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="light">
-<title>追踪管理</title>
-<style>
-:root{color-scheme:light}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",Arial,sans-serif;background:#eef1f5;color:#333;font-size:14px}
-.top{background:#2b6cb0;color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px}
-.top b{font-size:16px}.top a{color:#dbe9f7;margin-left:auto;font-size:13px}
-.wrap{max-width:1000px;margin:12px auto;padding:0 10px 40px}
-.panel{background:#fff;border:1px solid #cfd8e3;border-radius:5px;margin-bottom:12px;overflow:hidden}
-.panel-hd{background:#f5f8fb;border-bottom:1px solid #e1e8f0;padding:8px 12px;font-weight:700;font-size:14px;display:flex;gap:10px;align-items:center}
-.panel-hd .r{margin-left:auto;font-weight:normal;font-size:12px;color:#7a8a99}
-.panel-bd{padding:10px}
-table{width:100%;border-collapse:collapse}
-th,td{text-align:left;padding:7px 8px;border-bottom:1px solid #eef2f6;font-size:13px;vertical-align:top}
-th{background:#f5f8fb;color:#666;font-weight:normal}
-tr:hover td{background:#fafcff}
-.mono{font-family:Consolas,monospace;font-size:12px}
-.muted{color:#999;font-size:12px}
-.btn{border:0;background:#e6ebf1;color:#333;border-radius:3px;padding:3px 9px;font-size:12px;cursor:pointer}
-.btn.red{background:#fdeaea;color:#c0392b}
-.btn.blue{background:#2b6cb0;color:#fff;padding:6px 14px;font-size:13px}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-input{border:1px solid #cfd8e3;border-radius:3px;padding:6px 9px;font-size:13px;flex:1;min-width:140px}
-.tot{display:flex;gap:18px;flex-wrap:wrap;font-size:13px}
-.tot div{background:#f5f8fb;border:1px solid #e1e8f0;border-radius:5px;padding:8px 14px}
-.tot b{font-size:18px;color:#2b6cb0;display:block}
-.center{text-align:center;color:#999;padding:20px}
-.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#333;color:#fff;padding:7px 16px;border-radius:4px;font-size:13px;opacity:0;transition:.2s;pointer-events:none;z-index:9}
-.toast.show{opacity:.95}
-</style>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>管理后台</title>
+<link rel="preconnect" href="https://jgwadmeqhzgzlkbbjcik.supabase.co" crossorigin>
 <link rel="stylesheet" href="./theme.css">
+<script src="./icons.js"></script>
+<style>
+:root{
+  color-scheme:light dark;
+  --bg:#f4f7fc; --card:#fff; --soft:#f6f9fd; --soft2:#eef4ff;
+  --ink:#22314a; --mut:#8896a8; --line:#e9eef6;
+  --g1:#4f8cff; --g2:#35d0ba; --hot:#ff5d73;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#0e141b; --card:#151c26; --soft:#1b242f; --soft2:#1d2a3b;
+         --ink:#e7eef8; --mut:#8d9aac; --line:#26313f; }
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.ic{display:inline-block;vertical-align:-4px}
+.top{position:sticky;top:0;z-index:30;background:linear-gradient(120deg,var(--g1),var(--g2));box-shadow:0 6px 20px rgba(79,140,255,.22)}
+.top .in{max-width:1000px;margin:0 auto;padding:0 14px;height:56px;display:flex;align-items:center;gap:12px;color:#fff}
+.top .ttl{font-weight:800;font-size:16.5px}
+.top .acts{margin-left:auto;display:flex;gap:8px}
+.ibtn{display:flex;align-items:center;gap:5px;background:#ffffff26;border:0;color:#fff;border-radius:16px;padding:7px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.wrap{max-width:1000px;margin:14px auto 60px;padding:0 14px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.stat{background:var(--card);border-radius:18px;padding:16px;box-shadow:0 4px 20px rgba(34,49,74,.06);text-align:center}
+.stat .ico{width:38px;height:38px;border-radius:13px;margin:0 auto 9px;display:flex;align-items:center;justify-content:center;color:#fff}
+.stat b{display:block;font-size:22px;font-weight:800}
+.stat span{font-size:11.5px;color:var(--mut)}
+.card{background:var(--card);border-radius:18px;box-shadow:0 4px 20px rgba(34,49,74,.06);overflow:hidden;margin-top:14px}
+.card-hd{padding:13px 16px;font-weight:800;font-size:14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)}
+.card-hd .r{margin-left:auto;font-weight:400;font-size:11.5px;color:var(--mut)}
+.card-bd{padding:14px 16px}
+.row{display:flex;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .m{flex:1;min-width:0}
+.row .t1{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px}
+.row .t2{font-size:11.5px;color:var(--mut);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;flex:none}
+.mono{font-family:Consolas,monospace;font-size:12px}
+.tag{display:inline-block;font-size:10.5px;font-weight:800;padding:1px 7px;border-radius:20px}
+.tag.red{background:#fff0f3;color:#e0245e}
+.tag.green{background:#e8f8ef;color:#16a34a}
+.tag.blue{background:var(--soft2);color:#2f6fe0}
+.tag.gray{background:var(--soft);color:var(--mut)}
+@media (prefers-color-scheme: dark){
+  .tag.red{background:#3a1f28;color:#ff8fa8}
+  .tag.green{background:#16301f;color:#5ad18a}
+}
+.btn{border:0;border-radius:16px;padding:7px 14px;font-weight:800;font-size:12.5px;cursor:pointer;font-family:inherit;transition:.15s}
+.btn:active{transform:scale(.96)}
+.btn.blue{background:linear-gradient(120deg,var(--g1),var(--g2));color:#fff}
+.btn.gray{background:var(--soft);color:var(--mut)}
+.btn.red{background:#fff0f3;color:#e0245e}
+@media (prefers-color-scheme: dark){ .btn.red{background:#3a1f28;color:#ff8fa8} }
+input{border:1px solid var(--line);background:var(--soft);border-radius:14px;padding:10px 13px;font-size:14px;color:var(--ink);outline:none;font-family:inherit;flex:1;min-width:120px}
+input:focus{border-color:#bcd6ff;box-shadow:0 0 0 3px rgba(79,140,255,.12)}
+.flex{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.empty{color:var(--mut);text-align:center;padding:36px 14px;font-size:13px}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) scale(.9);background:#22314a;color:#fff;padding:10px 18px;border-radius:24px;font-size:13px;opacity:0;transition:.2s;pointer-events:none;z-index:90}
+.toast.show{opacity:1;transform:translateX(-50%) scale(1)}
+@media(max-width:600px){ .stats{grid-template-columns:1fr} }
+</style>
 </head>
 <body>
-<div class="top"><b>🔍 追踪管理</b><a href="./">← 返回论坛</a></div>
-<div class="wrap">
-  <div class="panel"><div class="panel-bd">
-    <div class="tot">
-      <div><b id="tReg">-</b>注册记录</div>
-      <div><b id="tVis">-</b>访问记录</div>
-      <div><b id="tBlk">-</b>黑名单</div>
-    </div>
-  </div></div>
+<div class="top"><div class="in">
+  <span class="ttl">管理后台</span>
+  <span class="acts">
+    <button class="ibtn" id="btnHome"></button>
+  </span>
+</div></div>
 
-  <div class="panel">
-    <div class="panel-hd">手动拉黑 IP <span class="r">留空原因默认「手动拉黑」</span></div>
-    <div class="panel-bd">
-      <div class="row">
+<div class="wrap">
+  <div class="stats">
+    <div class="stat"><div class="ico" style="background:linear-gradient(135deg,#4f8cff,#35d0ba)" id="i1"></div><b id="tReg">-</b><span>注册记录</span></div>
+    <div class="stat"><div class="ico" style="background:linear-gradient(135deg,#a78bfa,#7c9dff)" id="i2"></div><b id="tVis">-</b><span>访问记录</span></div>
+    <div class="stat"><div class="ico" style="background:linear-gradient(135deg,#ff8f70,#ff5d73)" id="i3"></div><b id="tBlk">-</b><span>黑名单</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">手动拉黑 IP <span class="r">留空原因默认「手动拉黑」</span></div>
+    <div class="card-bd">
+      <div class="flex">
         <input id="ipIn" placeholder="例如 1.2.3.4">
         <input id="rsIn" placeholder="原因（可选）">
         <button class="btn blue" id="addBlk">拉黑</button>
@@ -58,32 +95,33 @@ input{border:1px solid #cfd8e3;border-radius:3px;padding:6px 9px;font-size:13px;
     </div>
   </div>
 
-  <div class="panel">
-    <div class="panel-hd">用户管理 <span class="r">删除账号会立即踢下线</span></div>
-    <div class="panel-bd"><div id="userBox" class="center">加载中…</div></div>
+  <div class="card">
+    <div class="card-hd" id="hUser">用户管理 <span class="r">删号会立即踢下线</span></div>
+    <div id="userBox"><div class="empty">加载中…</div></div>
   </div>
 
-  <div class="panel">
-    <div class="panel-hd">举报处理 <span class="r">AI 会自动判定并隐藏违规内容</span></div>
-    <div class="panel-bd"><div id="repBox" class="center">加载中…</div></div>
+  <div class="card">
+    <div class="card-hd">举报处理 <span class="r">AI 会自动判定并隐藏违规内容</span></div>
+    <div id="repBox"><div class="empty">加载中…</div></div>
   </div>
 
-  <div class="panel">
-    <div class="panel-hd">按 IP 统计注册</div>
-    <div class="panel-bd"><div id="regBox" class="center">加载中…</div></div>
+  <div class="card">
+    <div class="card-hd">按 IP 统计注册</div>
+    <div id="regBox"><div class="empty">加载中…</div></div>
   </div>
 
-  <div class="panel">
-    <div class="panel-hd">黑名单</div>
-    <div class="panel-bd"><div id="blkBox" class="center">加载中…</div></div>
+  <div class="card">
+    <div class="card-hd">黑名单</div>
+    <div id="blkBox"><div class="empty">加载中…</div></div>
   </div>
 
-  <div class="panel">
-    <div class="panel-hd">最近访问（追踪器）</div>
-    <div class="panel-bd"><div id="visBox" class="center">加载中…</div></div>
+  <div class="card">
+    <div class="card-hd">最近访问</div>
+    <div id="visBox"><div class="empty">加载中…</div></div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
+
 <script>
 const API="https://jgwadmeqhzgzlkbbjcik.supabase.co/functions/v1/forum";
 const $=id=>document.getElementById(id);
@@ -91,128 +129,111 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const fmt=t=>t?new Date(t).toLocaleString('zh-CN',{hour12:false}):'';
 const token=()=>localStorage.getItem('forum_token')||'';
 const meId=(()=>{try{return (JSON.parse(localStorage.getItem('forum_user')||'null')||{}).id||'';}catch(e){return '';}})();
+const PALETTE=[['#4f8cff','#35d0ba'],['#ff8f70','#ff5d73'],['#a78bfa','#7c9dff'],['#fbbf24','#fb923c'],['#34d399','#22d3ee'],['#f472b6','#a78bfa']];
+function grad(n){let h=0;for(const c of String(n||'?'))h=(h*31+c.charCodeAt(0))>>>0;const p=PALETTE[h%PALETTE.length];return `linear-gradient(135deg,${p[0]},${p[1]})`;}
+function av(n){return `<div class="av" style="background:${grad(n)}">${esc(String(n||'?').slice(0,1))}</div>`;}
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1600);}
 
+$('i1').innerHTML=icon('user',{size:18});
+$('i2').innerHTML=icon('eye',{size:18});
+$('i3').innerHTML=icon('shield',{size:18});
+$('btnHome').innerHTML=icon('back',{size:14})+'<span>返回</span>';
+$('btnHome').onclick=()=>location.href='./';
+
 async function api(path,opts={}){
-  const h=opts.body?{'Content-Type':'application/json'}:{};
-  if(token()) h['Authorization']='Bearer '+token();
+  const h={}; if(opts.body)h['Content-Type']='application/json';
+  if(token())h['Authorization']='Bearer '+token();
   const r=await fetch(API+path,{method:opts.method||'GET',headers:h,body:opts.body?JSON.stringify(opts.body):undefined});
   const j=await r.json().catch(()=>({}));
-  if(!r.ok) throw new Error(j.error||('HTTP '+r.status));
+  if(!r.ok){const e=new Error(j.error||('HTTP '+r.status));e.status=r.status;throw e;}
   return j;
 }
 
 async function load(){
   try{
     const j=await api('?action=admin_stats');
-    $('tReg').textContent=j.totals.regs;
-    $('tVis').textContent=j.totals.visits;
-    $('tBlk').textContent=j.totals.black;
+    $('tReg').textContent=j.totals.regs; $('tVis').textContent=j.totals.visits; $('tBlk').textContent=j.totals.black;
 
+    // 用户
     try{
-      const uj = await api('?action=admin_users');
-      $('userBox').innerHTML = uj.users.length ? `<table>
-        <thead><tr><th>用户名</th><th>管理员</th><th>帖子</th><th>IP</th><th>设备</th><th>注册时间</th><th></th></tr></thead><tbody>
-        ${uj.users.map(u=>`<tr>
-          <td><b>${esc(u.username)}</b></td>
-          <td>${u.is_admin?'<span style="color:#c0392b">是</span>':'否'}</td>
-          <td>${u.post_count||0}</td>
-          <td class="mono">${esc(u.created_ip||'-')}</td>
-          <td class="muted">${esc(u.device||'-')}</td>
-          <td class="muted">${fmt(u.created_at)}</td>
-          <td style="white-space:nowrap">
-            ${u.id===meId ? '<span class="muted">当前账号（不可操作）</span>' : `
-              <button class="btn" data-admin="${esc(u.id)}" data-val="${u.is_admin?'0':'1'}">${u.is_admin?'取消管理':'设为管理'}</button>
-              <button class="btn red" data-del="${esc(u.id)}" data-name="${esc(u.username)}">删除</button>`}
-          </td>
-        </tr>`).join('')}</tbody></table>` : '<div class="center">暂无用户</div>';
-      document.querySelectorAll('[data-admin]').forEach(b=>b.onclick=()=>setAdmin(b.dataset.admin, b.dataset.val==='1'));
-      document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>delUser(b.dataset.del, b.dataset.name));
-    }catch(e){ $('userBox').innerHTML = `<div class="center">${esc(e.message)}</div>`; }
+      const uj=await api('?action=admin_users');
+      $('userBox').innerHTML=(uj.users||[]).map(u=>`
+        <div class="row">
+          ${av(u.username)}
+          <div class="m">
+            <div class="t1">${esc(u.username)}
+              ${u.is_admin?'<span class="tag red">管理员</span>':''}
+              ${u.id===meId?'<span class="tag blue">当前</span>':''}
+            </div>
+            <div class="t2"><span class="mono">${esc(u.created_ip||'-')}</span> · ${esc(u.device||'-')} · ${u.post_count||0} 帖</div>
+          </div>
+          ${u.id===meId?'':`<button class="btn gray" data-admin="${u.id}" data-val="${u.is_admin?'0':'1'}">${u.is_admin?'取消管理':'设管理'}</button>
+          <button class="btn red" data-del="${u.id}" data-name="${esc(u.username)}">删除</button>`}
+        </div>`).join('')||'<div class="empty">暂无用户</div>';
+      document.querySelectorAll('[data-admin]').forEach(b=>b.onclick=()=>setAdmin(b.dataset.admin,b.dataset.val==='1'));
+      document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>delUser(b.dataset.del,b.dataset.name));
+    }catch(e){ $('userBox').innerHTML=`<div class="empty">${esc(e.message)}</div>`; }
 
+    // 举报
     try{
-      const rj = await api('?action=reports');
-      $('repBox').innerHTML = rj.reports.length ? `<table>
-        <thead><tr><th>时间</th><th>类型</th><th>内容</th><th>举报理由</th><th>AI 判定</th><th>状态</th><th></th></tr></thead><tbody>
-        ${rj.reports.map(r=>`<tr>
-          <td class="muted">${fmt(r.created_at)}</td>
-          <td>${esc(r.target_type==='post'?'主题':'回复')}</td>
-          <td style="max-width:240px">${esc(((r.target&&r.target.title)||(r.target&&r.target.body)||'（内容已删除）').slice(0,60))}
-            ${r.target&&r.target.is_hidden?'<span style="color:#c0392b">[已隐藏]</span>':''}</td>
-          <td class="muted">${esc((r.report_type||'')+' '+(r.reason||''))}</td>
-          <td class="muted">${esc(r.ai_verdict||'-')}</td>
-          <td>${esc(r.status)}</td>
-          <td style="white-space:nowrap">
-            <button class="btn red" data-ract="hide" data-rid="${r.id}">隐藏</button>
-            <button class="btn" data-ract="restore" data-rid="${r.id}">恢复</button>
-            <button class="btn" data-ract="dismiss" data-rid="${r.id}">忽略</button>
-          </td>
-        </tr>`).join('')}</tbody></table>` : '<div class="center">暂无举报</div>';
+      const rj=await api('?action=reports');
+      $('repBox').innerHTML=(rj.reports||[]).map(r=>`
+        <div class="row">
+          <div class="m">
+            <div class="t1">${esc(r.target_type==='post'?'主题':'回复')} · ${esc(r.report_type||'其他')}
+              <span class="tag ${r.status==='auto_hidden'?'red':'gray'}">${esc(r.status)}</span></div>
+            <div class="t2">${esc(((r.target&&(r.target.title||r.target.body))||'（内容已删除）').slice(0,50))}</div>
+            <div class="t2">举报：${esc(r.reporter||'-')} · ${esc(r.ai_verdict||'-')}</div>
+          </div>
+          <button class="btn red" data-ract="hide" data-rid="${r.id}">隐藏</button>
+          <button class="btn gray" data-ract="restore" data-rid="${r.id}">恢复</button>
+          <button class="btn gray" data-ract="dismiss" data-rid="${r.id}">忽略</button>
+        </div>`).join('')||'<div class="empty">暂无举报</div>';
       document.querySelectorAll('[data-ract]').forEach(b=>b.onclick=()=>reportAct(b.dataset.rid,b.dataset.ract));
-    }catch(e){ $('repBox').innerHTML = `<div class="center">${esc(e.message)}</div>`; }
+    }catch(e){ $('repBox').innerHTML=`<div class="empty">${esc(e.message)}</div>`; }
 
-    $('regBox').innerHTML = j.regStats.length ? `<table>
-      <thead><tr><th>IP</th><th>注册次数</th><th>设备</th><th>最近</th><th></th></tr></thead><tbody>
-      ${j.regStats.map(r=>`<tr>
-        <td class="mono">${esc(r.ip)}</td>
-        <td>${r.count}</td>
-        <td class="muted">${esc((r.devices||[]).join('、')||'-')}</td>
-        <td class="muted">${fmt(r.last)}</td>
-        <td><button class="btn red" data-blk="${esc(r.ip)}">拉黑</button></td>
-      </tr>`).join('')}</tbody></table>` : '<div class="center">暂无记录</div>';
+    // IP 统计
+    $('regBox').innerHTML=(j.regStats||[]).map(r=>`
+      <div class="row">
+        ${av(r.ip)}
+        <div class="m"><div class="t1 mono">${esc(r.ip)}</div>
+          <div class="t2">${esc((r.devices||[]).join('、')||'-')} · 最近 ${fmt(r.last)}</div></div>
+        <span class="tag ${r.count>=3?'red':'gray'}">${r.count} 次</span>
+        <button class="btn red" data-blk="${esc(r.ip)}">拉黑</button>
+      </div>`).join('')||'<div class="empty">暂无记录</div>';
 
-    $('blkBox').innerHTML = j.blacklist.length ? `<table>
-      <thead><tr><th>IP</th><th>原因</th><th>次数</th><th>时间</th><th></th></tr></thead><tbody>
-      ${j.blacklist.map(b=>`<tr>
-        <td class="mono">${esc(b.ip)}</td><td>${esc(b.reason||'-')}</td>
-        <td>${b.reg_count||0}</td><td class="muted">${fmt(b.created_at)}</td>
-        <td><button class="btn" data-unblk="${esc(b.ip)}">解封</button></td>
-      </tr>`).join('')}</tbody></table>` : '<div class="center">黑名单为空</div>';
+    // 黑名单
+    $('blkBox').innerHTML=(j.blacklist||[]).map(b=>`
+      <div class="row">
+        ${av(b.ip)}
+        <div class="m"><div class="t1 mono">${esc(b.ip)}</div>
+          <div class="t2">${esc(b.reason||'-')} · ${fmt(b.created_at)}</div></div>
+        <button class="btn gray" data-unblk="${esc(b.ip)}">解封</button>
+      </div>`).join('')||'<div class="empty">黑名单为空</div>';
 
-    $('visBox').innerHTML = j.visits.length ? `<table>
-      <thead><tr><th>时间</th><th>IP</th><th>用户</th><th>页面</th><th>设备</th></tr></thead><tbody>
-      ${j.visits.map(v=>`<tr>
-        <td class="muted">${fmt(v.created_at)}</td>
-        <td class="mono">${esc(v.ip||'-')}</td>
-        <td>${esc(v.username||'游客')}</td>
-        <td class="mono">${esc(v.path||'/')}</td>
-        <td class="muted">${esc(v.device||'-')}</td>
-      </tr>`).join('')}</tbody></table>` : '<div class="center">暂无访问记录</div>';
+    // 访问
+    $('visBox').innerHTML=(j.visits||[]).map(v=>`
+      <div class="row">
+        ${av(v.username||v.ip)}
+        <div class="m"><div class="t1">${esc(v.username||'游客')} <span class="tag gray mono">${esc(v.ip||'-')}</span></div>
+          <div class="t2"><span class="mono">${esc(v.path||'/')}</span> · ${esc(v.device||'-')} · ${fmt(v.created_at)}</div></div>
+      </div>`).join('')||'<div class="empty">暂无访问记录</div>';
 
     document.querySelectorAll('[data-blk]').forEach(b=>b.onclick=()=>blacklist(b.dataset.blk,true,''));
     document.querySelectorAll('[data-unblk]').forEach(b=>b.onclick=()=>blacklist(b.dataset.unblk,false,''));
   }catch(e){
-    const box=document.getElementById('regBox');
-    box.innerHTML=`<div class="center">${esc(e.message)}<br><br>需要管理员权限，请先在论坛登录管理员账号。</div>`;
+    $('regBox').innerHTML=`<div class="empty">${esc(e.message)}<br><br>需要管理员权限</div>`;
     $('blkBox').innerHTML=''; $('visBox').innerHTML='';
   }
 }
+async function setAdmin(id,v){ try{await api('',{method:'POST',body:{action:'set_admin',id,value:v}});toast('已更新');load();}catch(e){toast(e.message);} }
+async function delUser(id,name){ if(!confirm(`确定删除账号「${name}」？删除后立即踢下线`))return;
+  try{await api('',{method:'POST',body:{action:'delete_user',id}});toast('已删除');load();}catch(e){toast(e.message);} }
+async function reportAct(id,act){ try{await api('',{method:'POST',body:{action:'report_action',id,act}});toast('已处理');load();}catch(e){toast(e.message);} }
+async function blacklist(ip,value,reason){ try{await api('',{method:'POST',body:{action:'blacklist',ip,value,reason}});toast(value?'已拉黑':'已解封');load();}catch(e){toast(e.message);} }
+$('addBlk').onclick=()=>{ const ip=$('ipIn').value.trim(); if(!ip)return toast('请输入IP');
+  blacklist(ip,true,$('rsIn').value.trim()); $('ipIn').value=''; $('rsIn').value=''; };
 
-async function reportAct(id,act){
-  try{ await api('',{method:'POST',body:{action:'report_action',id,act}}); toast('已处理'); load(); }
-  catch(e){ toast(e.message); }
-}
-
-async function setAdmin(id,value){
-  try{ await api('',{method:'POST',body:{action:'set_admin',id,value}}); toast('已更新'); load(); }
-  catch(e){ toast(e.message); }
-}
-async function delUser(id,name){
-  if(!confirm(`确定删除账号「${name}」？
-删除后该用户会立即被踢下线，帖子保留。`)) return;
-  try{ await api('',{method:'POST',body:{action:'delete_user',id}}); toast('已删除并踢下线'); load(); }
-  catch(e){ toast(e.message); }
-}
-
-async function blacklist(ip,value,reason){
-  try{ await api('',{method:'POST',body:{action:'blacklist',ip,value,reason}}); toast(value?'已拉黑':'已解封'); load(); }
-  catch(e){ toast(e.message); }
-}
-
-$('addBlk').onclick=()=>{
-  const ip=$('ipIn').value.trim(); if(!ip){ toast('请输入IP'); return; }
-  blacklist(ip,true,$('rsIn').value.trim()); $('ipIn').value=''; $('rsIn').value='';
-};
 load();
 </script>
 </body>
