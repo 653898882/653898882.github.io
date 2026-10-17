@@ -180,5 +180,15 @@ addMsg('sys','你好，我是 AI 小智，有什么可以帮你？（单条最�
 loadQuota();
 updateCounter();
 </script>
+<script>
+(function(){try{
+  var t=localStorage.getItem('forum_token')||'';
+  var h={'Content-Type':'application/json'};
+  if(t) h['Authorization']='Bearer '+t;
+  fetch('https://jgwadmeqhzgzlkbbjcik.supabase.co/functions/v1/forum',
+    {method:'POST',headers:h,body:JSON.stringify({action:'track',path:location.pathname+location.search,referer:document.referrer||''})}
+  ).catch(function(){});
+}catch(e){}})();
+</script>
 </body>
 </html>

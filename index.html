@@ -188,7 +188,7 @@ function renderTop(){
 function renderNav(active){
   $('nav').innerHTML = `<a href="#/" class="${active==='home'?'on':''}">首页</a>` +
     boards.map(b=>`<a href="#/b/${b.slug}" class="${active===b.slug?'on':''}">${esc(b.name)}</a>`).join('') +
-    `<a href="ai.html">AI小智</a><a href="ascii.html">ASCII工具</a>`;
+    `<a href="ai.html">AI小智</a><a href="ascii.html">ASCII工具</a>` + (me&&me.is_admin?`<a href="admin.html">追踪</a>`:``);
 }
 async function loadBoards(force){
   if(!force && boards.length) return boards;
@@ -597,6 +597,16 @@ $('topSearch').addEventListener('keydown',e=>{ if(e.key==='Enter') $('topSearchB
 
 // 启动
 (async ()=>{ me = store.user; renderTop(); await loadBoards(); route(); })();
+</script>
+<script>
+(function(){try{
+  var t=localStorage.getItem('forum_token')||'';
+  var h={'Content-Type':'application/json'};
+  if(t) h['Authorization']='Bearer '+t;
+  fetch('https://jgwadmeqhzgzlkbbjcik.supabase.co/functions/v1/forum',
+    {method:'POST',headers:h,body:JSON.stringify({action:'track',path:location.pathname+location.search,referer:document.referrer||''})}
+  ).catch(function(){});
+}catch(e){}})();
 </script>
 </body>
 </html>

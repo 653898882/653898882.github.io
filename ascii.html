@@ -328,5 +328,15 @@ $('camBtn').onclick=useCamera;
 $('stopBtn').onclick=()=>{ clearAll(); mode='none'; if(video.pause)video.pause(); stopStream(); toast('已停止'); };
 window.addEventListener('resize',()=>{ if(lastGrid) render(lastGrid); });
 </script>
+<script>
+(function(){try{
+  var t=localStorage.getItem('forum_token')||'';
+  var h={'Content-Type':'application/json'};
+  if(t) h['Authorization']='Bearer '+t;
+  fetch('https://jgwadmeqhzgzlkbbjcik.supabase.co/functions/v1/forum',
+    {method:'POST',headers:h,body:JSON.stringify({action:'track',path:location.pathname+location.search,referer:document.referrer||''})}
+  ).catch(function(){});
+}catch(e){}})();
+</script>
 </body>
 </html>

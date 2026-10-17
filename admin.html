@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>追踪管理</title>
+<style>
+:root{color-scheme:light}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",Arial,sans-serif;background:#eef1f5;color:#333;font-size:14px}
+.top{background:#2b6cb0;color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.top b{font-size:16px}.top a{color:#dbe9f7;margin-left:auto;font-size:13px}
+.wrap{max-width:1000px;margin:12px auto;padding:0 10px 40px}
+.panel{background:#fff;border:1px solid #cfd8e3;border-radius:5px;margin-bottom:12px;overflow:hidden}
+.panel-hd{background:#f5f8fb;border-bottom:1px solid #e1e8f0;padding:8px 12px;font-weight:700;font-size:14px;display:flex;gap:10px;align-items:center}
+.panel-hd .r{margin-left:auto;font-weight:normal;font-size:12px;color:#7a8a99}
+.panel-bd{padding:10px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid #eef2f6;font-size:13px;vertical-align:top}
+th{background:#f5f8fb;color:#666;font-weight:normal}
+tr:hover td{background:#fafcff}
+.mono{font-family:Consolas,monospace;font-size:12px}
+.muted{color:#999;font-size:12px}
+.btn{border:0;background:#e6ebf1;color:#333;border-radius:3px;padding:3px 9px;font-size:12px;cursor:pointer}
+.btn.red{background:#fdeaea;color:#c0392b}
+.btn.blue{background:#2b6cb0;color:#fff;padding:6px 14px;font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input{border:1px solid #cfd8e3;border-radius:3px;padding:6px 9px;font-size:13px;flex:1;min-width:140px}
+.tot{display:flex;gap:18px;flex-wrap:wrap;font-size:13px}
+.tot div{background:#f5f8fb;border:1px solid #e1e8f0;border-radius:5px;padding:8px 14px}
+.tot b{font-size:18px;color:#2b6cb0;display:block}
+.center{text-align:center;color:#999;padding:20px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#333;color:#fff;padding:7px 16px;border-radius:4px;font-size:13px;opacity:0;transition:.2s;pointer-events:none;z-index:9}
+.toast.show{opacity:.95}
+</style>
+</head>
+<body>
+<div class="top"><b>🔍 追踪管理</b><a href="./">← 返回论坛</a></div>
+<div class="wrap">
+  <div class="panel"><div class="panel-bd">
+    <div class="tot">
+      <div><b id="tReg">-</b>注册记录</div>
+      <div><b id="tVis">-</b>访问记录</div>
+      <div><b id="tBlk">-</b>黑名单</div>
+    </div>
+  </div></div>
+
+  <div class="panel">
+    <div class="panel-hd">手动拉黑 IP <span class="r">留空原因默认「手动拉黑」</span></div>
+    <div class="panel-bd">
+      <div class="row">
+        <input id="ipIn" placeholder="例如 1.2.3.4">
+        <input id="rsIn" placeholder="原因（可选）">
+        <button class="btn blue" id="addBlk">拉黑</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-hd">按 IP 统计注册</div>
+    <div class="panel-bd"><div id="regBox" class="center">加载中…</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-hd">黑名单</div>
+    <div class="panel-bd"><div id="blkBox" class="center">加载中…</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-hd">最近访问（追踪器）</div>
+    <div class="panel-bd"><div id="visBox" class="center">加载中…</div></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const API="https://jgwadmeqhzgzlkbbjcik.supabase.co/functions/v1/forum";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=t=>t?new Date(t).toLocaleString('zh-CN',{hour12:false}):'';
+const token=()=>localStorage.getItem('forum_token')||'';
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1600);}
+
+async function api(path,opts={}){
+  const h=opts.body?{'Content-Type':'application/json'}:{};
+  if(token()) h['Authorization']='Bearer '+token();
+  const r=await fetch(API+path,{method:opts.method||'GET',headers:h,body:opts.body?JSON.stringify(opts.body):undefined});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(j.error||('HTTP '+r.status));
+  return j;
+}
+
+async function load(){
+  try{
+    const j=await api('?action=admin_stats');
+    $('tReg').textContent=j.totals.regs;
+    $('tVis').textContent=j.totals.visits;
+    $('tBlk').textContent=j.totals.black;
+
+    $('regBox').innerHTML = j.regStats.length ? `<table>
+      <thead><tr><th>IP</th><th>注册次数</th><th>设备</th><th>最近</th><th></th></tr></thead><tbody>
+      ${j.regStats.map(r=>`<tr>
+        <td class="mono">${esc(r.ip)}</td>
+        <td>${r.count}</td>
+        <td class="muted">${esc((r.devices||[]).join('、')||'-')}</td>
+        <td class="muted">${fmt(r.last)}</td>
+        <td><button class="btn red" data-blk="${esc(r.ip)}">拉黑</button></td>
+      </tr>`).join('')}</tbody></table>` : '<div class="center">暂无记录</div>';
+
+    $('blkBox').innerHTML = j.blacklist.length ? `<table>
+      <thead><tr><th>IP</th><th>原因</th><th>次数</th><th>时间</th><th></th></tr></thead><tbody>
+      ${j.blacklist.map(b=>`<tr>
+        <td class="mono">${esc(b.ip)}</td><td>${esc(b.reason||'-')}</td>
+        <td>${b.reg_count||0}</td><td class="muted">${fmt(b.created_at)}</td>
+        <td><button class="btn" data-unblk="${esc(b.ip)}">解封</button></td>
+      </tr>`).join('')}</tbody></table>` : '<div class="center">黑名单为空</div>';
+
+    $('visBox').innerHTML = j.visits.length ? `<table>
+      <thead><tr><th>时间</th><th>IP</th><th>用户</th><th>页面</th><th>设备</th></tr></thead><tbody>
+      ${j.visits.map(v=>`<tr>
+        <td class="muted">${fmt(v.created_at)}</td>
+        <td class="mono">${esc(v.ip||'-')}</td>
+        <td>${esc(v.username||'游客')}</td>
+        <td class="mono">${esc(v.path||'/')}</td>
+        <td class="muted">${esc(v.device||'-')}</td>
+      </tr>`).join('')}</tbody></table>` : '<div class="center">暂无访问记录</div>';
+
+    document.querySelectorAll('[data-blk]').forEach(b=>b.onclick=()=>blacklist(b.dataset.blk,true,''));
+    document.querySelectorAll('[data-unblk]').forEach(b=>b.onclick=()=>blacklist(b.dataset.unblk,false,''));
+  }catch(e){
+    const box=document.getElementById('regBox');
+    box.innerHTML=`<div class="center">${esc(e.message)}<br><br>需要管理员权限，请先在论坛登录管理员账号。</div>`;
+    $('blkBox').innerHTML=''; $('visBox').innerHTML='';
+  }
+}
+
+async function blacklist(ip,value,reason){
+  try{ await api('',{method:'POST',body:{action:'blacklist',ip,value,reason}}); toast(value?'已拉黑':'已解封'); load(); }
+  catch(e){ toast(e.message); }
+}
+
+$('addBlk').onclick=()=>{
+  const ip=$('ipIn').value.trim(); if(!ip){ toast('请输入IP'); return; }
+  blacklist(ip,true,$('rsIn').value.trim()); $('ipIn').value=''; $('rsIn').value='';
+};
+load();
+</script>
+</body>
+</html>
